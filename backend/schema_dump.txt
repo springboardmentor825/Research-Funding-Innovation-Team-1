@@ -1,0 +1,124 @@
+=== TABLE: alerts ===
+  id: INTEGER (nullable=False)
+  user_id: INTEGER (nullable=False)
+  alert_type: VARCHAR(50) (nullable=False)
+  message: VARCHAR(500) (nullable=False)
+  timestamp: DATETIME (nullable=True)
+  is_read: TINYINT (nullable=True)
+  Foreign keys: [{'name': 'alerts_ibfk_1', 'constrained_columns': ['user_id'], 'referred_schema': None, 'referred_table': 'users', 'referred_columns': ['id'], 'options': {'ondelete': 'CASCADE'}}]
+
+=== TABLE: chat_history ===
+  id: INTEGER (nullable=False)
+  question: TEXT (nullable=True)
+  answer: LONGTEXT (nullable=True)
+  created_at: DATETIME (nullable=True)
+  Foreign keys: []
+
+=== TABLE: collaborations ===
+  id: INTEGER (nullable=False)
+  user_id: INTEGER (nullable=False)
+  researcher_name: VARCHAR(255) (nullable=False)
+  institution: VARCHAR(255) (nullable=False)
+  overlap_topics: VARCHAR(500) (nullable=False)
+  collaboration_score: INTEGER (nullable=False)
+  Foreign keys: [{'name': 'collaborations_ibfk_1', 'constrained_columns': ['user_id'], 'referred_schema': None, 'referred_table': 'users', 'referred_columns': ['id'], 'options': {'ondelete': 'CASCADE'}}]
+
+=== TABLE: documents ===
+  id: INTEGER (nullable=False)
+  title: VARCHAR(255) (nullable=True)
+  document_type: VARCHAR(50) (nullable=True)
+  source: VARCHAR(255) (nullable=True)
+  upload_date: DATETIME (nullable=True)
+  Foreign keys: []
+
+=== TABLE: funding_opportunities ===
+  id: INTEGER (nullable=False)
+  title: VARCHAR(255) (nullable=False)
+  funder: VARCHAR(255) (nullable=False)
+  amount_range: VARCHAR(100) (nullable=False)
+  deadline: DATE (nullable=False)
+  semantic_fit: INTEGER (nullable=True)
+  match_badges: VARCHAR(255) (nullable=True)
+  Foreign keys: []
+
+=== TABLE: lab_resources ===
+  id: INTEGER (nullable=False)
+  user_id: INTEGER (nullable=False)
+  name: VARCHAR(255) (nullable=False)
+  resource_type: VARCHAR(100) (nullable=False)
+  availability_status: VARCHAR(50) (nullable=False)
+  location: VARCHAR(255) (nullable=False)
+  Foreign keys: [{'name': 'lab_resources_ibfk_1', 'constrained_columns': ['user_id'], 'referred_schema': None, 'referred_table': 'users', 'referred_columns': ['id'], 'options': {'ondelete': 'CASCADE'}}]
+
+=== TABLE: patents ===
+  patent_id: INTEGER (nullable=False)
+  user_id: INTEGER (nullable=False)
+  title: VARCHAR(500) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  inventor: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  assignee: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  technology_domain: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  filing_date: DATE (nullable=False)
+  Foreign keys: [{'name': 'fk_patent_user', 'constrained_columns': ['user_id'], 'referred_schema': None, 'referred_table': 'users', 'referred_columns': ['id'], 'options': {'ondelete': 'CASCADE'}}]
+
+=== TABLE: publications ===
+  publication_id: INTEGER (nullable=False)
+  user_id: INTEGER (nullable=False)
+  title: VARCHAR(500) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  authors: TEXT COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  journal: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  publication_year: INTEGER (nullable=False)
+  doi: VARCHAR(100) COLLATE "utf8mb4_unicode_ci" (nullable=True)
+  Foreign keys: [{'name': 'fk_publication_user', 'constrained_columns': ['user_id'], 'referred_schema': None, 'referred_table': 'users', 'referred_columns': ['id'], 'options': {'ondelete': 'CASCADE'}}]
+
+=== TABLE: reports ===
+  id: INTEGER (nullable=False)
+  user_id: INTEGER (nullable=False)
+  title: VARCHAR(255) (nullable=False)
+  report_type: VARCHAR(50) (nullable=False)
+  generated_date: DATETIME (nullable=True)
+  file_size: VARCHAR(50) (nullable=False)
+  preview_snippet: TEXT (nullable=True)
+  Foreign keys: [{'name': 'reports_ibfk_1', 'constrained_columns': ['user_id'], 'referred_schema': None, 'referred_table': 'users', 'referred_columns': ['id'], 'options': {'ondelete': 'CASCADE'}}]
+
+=== TABLE: research_papers ===
+  id: INTEGER (nullable=False)
+  title: VARCHAR(500) (nullable=False)
+  authors: TEXT (nullable=True)
+  publication_year: INTEGER (nullable=True)
+  domain: VARCHAR(255) (nullable=True)
+  file_path: VARCHAR(1000) (nullable=True)
+  uploaded_at: TIMESTAMP (nullable=True)
+  Foreign keys: []
+
+=== TABLE: research_profile ===
+  profile_id: INTEGER (nullable=False)
+  user_id: INTEGER (nullable=False)
+  organization: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  designation: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  research_domain: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  technology_area: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  research_interests: TEXT COLLATE "utf8mb4_unicode_ci" (nullable=True)
+  keywords: TEXT COLLATE "utf8mb4_unicode_ci" (nullable=True)
+  bio: TEXT COLLATE "utf8mb4_unicode_ci" (nullable=True)
+  Foreign keys: [{'name': 'fk_profile_user', 'constrained_columns': ['user_id'], 'referred_schema': None, 'referred_table': 'users', 'referred_columns': ['id'], 'options': {'ondelete': 'CASCADE'}}]
+
+=== TABLE: user_settings ===
+  id: INTEGER (nullable=False)
+  user_id: INTEGER (nullable=False)
+  email_notifications: TINYINT (nullable=True)
+  push_notifications: TINYINT (nullable=True)
+  profile_visibility: VARCHAR(50) (nullable=True)
+  Foreign keys: [{'name': 'user_settings_ibfk_1', 'constrained_columns': ['user_id'], 'referred_schema': None, 'referred_table': 'users', 'referred_columns': ['id'], 'options': {'ondelete': 'CASCADE'}}]
+
+=== TABLE: users ===
+  id: INTEGER (nullable=False)
+  full_name: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  email: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  password: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=True)
+  role: VARCHAR(50) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  login_type: VARCHAR(50) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  created_at: TIMESTAMP (nullable=True)
+  google_id: VARCHAR(255) COLLATE "utf8mb4_unicode_ci" (nullable=True)
+  profile_picture: VARCHAR(500) COLLATE "utf8mb4_unicode_ci" (nullable=True)
+  auth_provider: VARCHAR(50) COLLATE "utf8mb4_unicode_ci" (nullable=False)
+  Foreign keys: []

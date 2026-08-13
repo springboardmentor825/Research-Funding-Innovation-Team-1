@@ -1,3 +1,3 @@
-from app.crud.crud_user import get_user_by_email, create_user, authenticate_user
+# backend/app/crud/__init__.py
 
-__all__ = ["get_user_by_email", "create_user", "authenticate_user"]
+# Expose crud package

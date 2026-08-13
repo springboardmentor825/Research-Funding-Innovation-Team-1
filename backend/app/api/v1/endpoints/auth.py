@@ -1,11 +1,12 @@
+# backend/app/api/v1/endpoints/auth.py
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from app.core import security
-from app.core.database import get_db
-from app.crud import authenticate_user, get_user_by_email, create_user
-from app.schemas.user import User, UserCreate
-from app.schemas.token import Token
+from app.database import get_db
+from app.crud.crud_user import authenticate_user, get_user_by_email, create_user
+from app.schemas import User, UserCreate, Token
+from app.auth import create_access_token
 
 router = APIRouter()
 
@@ -21,7 +22,7 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
-    access_token = security.create_access_token(subject=user.email)
+    access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/register", response_model=User)
