@@ -1,106 +1,197 @@
 import React, { useEffect, useState } from 'react'
-import Navbar from '../components/common/Navbar'
+import AppLayout from '../components/layout/AppLayout'
+import FundingKpiCards from '../components/dashboard/FundingKpiCards'
+import FundingRecommendationCard from '../components/dashboard/FundingRecommendationCard'
+import MatchBreakdownChart from '../components/dashboard/MatchBreakdownChart'
+import ResearchInterestTags from '../components/dashboard/ResearchInterestTags'
+import AIInsightCard from '../components/dashboard/AIInsightCard'
+import FundingDetailModal from '../components/dashboard/FundingDetailModal'
 import { useAuth } from '../context/AuthContext'
-import { Link } from 'react-router-dom'
-import publicationsService from '../services/publications'
-import patentsService from '../services/patents'
+import fundingService from '../services/funding'
+import profileService from '../services/profile'
+import { Sparkles, RefreshCw, AlertCircle, Search } from 'lucide-react'
 
 function Dashboard() {
   const { user } = useAuth()
-  const [pubCount, setPubCount] = useState(0)
-  const [patentCount, setPatentCount] = useState(0)
+  const [recommendations, setRecommendations] = useState([])
+  const [userProfile, setUserProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [selectedRec, setSelectedRec] = useState(null)
+  const [savedIds, setSavedIds] = useState(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const userId = user?.id || 16
+
+  const loadDashboardData = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      // Fetch dynamic user recommendations from backend API
+      const recsData = await fundingService.getRecommendations(userId, 10)
+      const safeRecsList = Array.isArray(recsData) 
+        ? recsData 
+        : (recsData?.recommendations || [])
+      
+      setRecommendations(safeRecsList)
+
+      if (recsData?.researcher_profile) {
+        setUserProfile(recsData.researcher_profile)
+      }
+
+      // Fetch researcher profile
+      try {
+        const prof = await profileService.get()
+        if (prof) setUserProfile(prof)
+      } catch (pErr) {
+        console.warn('Profile fetch note:', pErr)
+      }
+    } catch (err) {
+      console.error('Failed to load recommendations:', err)
+      setError('Unable to fetch live funding recommendations. Please ensure backend service is active.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const pubs = await publicationsService.list()
-        const patents = await patentsService.list()
-        setPubCount(pubs.length)
-        setPatentCount(patents.length)
-      } catch (err) {
-        console.error('Failed to load portfolio stats:', err)
-      } finally {
-        setLoading(false)
-      }
+    if (userId) {
+      loadDashboardData()
     }
-    fetchStats()
-  }, [])
+  }, [userId])
+
+  const handleFeedback = async (rec, feedbackType) => {
+    try {
+      const oppId = rec.funding_id || rec.id
+      await fundingService.sendFeedback(userId, oppId, feedbackType)
+      
+      if (feedbackType === 'saved') {
+        setSavedIds(prev => new Set(prev).add(oppId))
+      } else if (feedbackType === 'dismissed') {
+        setRecommendations(prev => (Array.isArray(prev) ? prev : []).filter(r => (r.funding_id || r.id) !== oppId))
+      }
+    } catch (err) {
+      console.error('Feedback error:', err)
+    }
+  }
+
+  // Ensure recommendations is safely treated as an Array
+  const safeRecs = Array.isArray(recommendations) ? recommendations : []
+
+  // Filter recommendations based on global header search query
+  const filteredRecs = safeRecs.filter(r => {
+    if (!r) return false
+    if (!searchQuery) return true
+    const q = searchQuery.toLowerCase()
+    return (
+      (r.title && r.title.toLowerCase().includes(q)) ||
+      (r.funder && r.funder.toLowerCase().includes(q)) ||
+      (r.description && r.description.toLowerCase().includes(q))
+    )
+  })
+
+  const topRec = safeRecs.length > 0 ? safeRecs[0] : null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f5f8ff' }}>
-      <Navbar />
-      <div style={{ padding: '0 2rem 2rem 2rem', display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
+    <AppLayout 
+      title="Funding Recommendations" 
+      subtitle="Personalized for you based on your research profile"
+      searchValue={searchQuery}
+      onSearchChange={setSearchQuery}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>
-              Intelligence Dashboard
-            </h1>
-            <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Welcome, {user?.full_name || 'Researcher'}. Access your portfolio, funding details, and intelligence modules.</p>
-          </div>
-          <span className="badge badge-blue">{user?.role || 'User'}</span>
-        </header>
+        {/* KPI Cards Section */}
+        <FundingKpiCards 
+          recommendations={safeRecs} 
+          totalOpportunitiesCount={24}
+        />
 
-        {/* Overview Stats Cards */}
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          
-          <div className="glass-card" style={{ padding: '2rem', backgroundColor: '#ffffff' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>Research Profile</h3>
-            {user?.profile ? (
-              <div>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                  <strong>{user.profile.designation}</strong> at {user.profile.organization}
-                </p>
-                <Link to="/profile" className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>View Profile</Link>
-              </div>
-            ) : (
-              <div>
-                <p style={{ color: '#ef4444', fontSize: '0.9rem', marginBottom: '1rem', fontWeight: 500 }}>No active profile details found.</p>
-                <Link to="/profile" className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Initialize Profile</Link>
-              </div>
-            )}
+        {/* Loading State */}
+        {loading && (
+          <div style={{ padding: '4rem 2rem', textAlign: 'center', color: 'var(--accent-cyan-light)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+            <RefreshCw size={32} className="glow-animation" style={{ animation: 'spin 2s linear infinite' }} />
+            <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>Executing Multi-Signal Recommendation Engine...</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Matching publications, patents, and keywords using Sentence Transformers</div>
           </div>
+        )}
 
-          <div className="glass-card" style={{ padding: '2rem', backgroundColor: '#ffffff' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>My Publications</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>Manage journals, authored studies, and index DOIs.</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--primary-color)' }}>{loading ? '...' : pubCount}</span>
-              <Link to="/publications" className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Manage</Link>
+        {/* Error Alert */}
+        {error && !loading && (
+          <div className="ai-card" style={{ padding: '1.25rem', border: '1px solid rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#F8FAFC' }}>
+              <AlertCircle size={20} color="#EF4444" />
+              <span>{error}</span>
             </div>
+            <button onClick={loadDashboardData} className="btn-ai-outline" style={{ fontSize: '0.8rem' }}>
+              Retry API
+            </button>
           </div>
+        )}
 
-          <div className="glass-card" style={{ padding: '2rem', backgroundColor: '#ffffff' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>My Patents</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>Track filed intellectual properties, technology scopes, and inventors.</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--secondary-color)' }}>{loading ? '...' : patentCount}</span>
-              <Link to="/patents" className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Manage</Link>
+        {/* Two-Column Dashboard Content */}
+        {!loading && (
+          <div className="dashboard-grid">
+            
+            {/* LEFT COLUMN: Top Funding Recommendations */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F8FAFC', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Sparkles size={20} color="var(--accent-cyan)" />
+                  Top Funding Opportunities
+                </h2>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Ranked by Similarity & Rule Signals
+                </span>
+              </div>
+
+              {filteredRecs.length === 0 ? (
+                <div className="ai-card" style={{ padding: '3rem 2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  <Search size={36} color="#64748B" style={{ marginBottom: '0.75rem' }} />
+                  <h3 style={{ color: '#F8FAFC', marginBottom: '0.25rem' }}>No Opportunities Match Search</h3>
+                  <p style={{ fontSize: '0.875rem' }}>Try clearing search keywords or updating your research profile.</p>
+                </div>
+              ) : (
+                filteredRecs.map((rec, idx) => (
+                  <FundingRecommendationCard 
+                    key={rec.id || idx}
+                    recommendation={rec}
+                    onViewDetails={setSelectedRec}
+                    onFeedback={handleFeedback}
+                    isSaved={savedIds.has(rec.funding_id || rec.id)}
+                  />
+                ))
+              )}
             </div>
+
+            {/* RIGHT COLUMN: AI Insights, Match Breakdown, Research Interests */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              
+              {/* AI Insights Card */}
+              <AIInsightCard topRecommendation={topRec} />
+
+              {/* Match Score Breakdown Visualization */}
+              <MatchBreakdownChart />
+
+              {/* Research Focus / Tags Panel */}
+              <ResearchInterestTags userProfile={userProfile} />
+
+            </div>
+
           </div>
+        )}
 
-        </section>
-
-        {/* Features Modules */}
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
-          
-          <div className="glass-card" style={{ padding: '2rem', backgroundColor: '#ffffff' }}>
-            <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem', color: 'var(--primary-color)' }}>Funding Opportunities</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Scan institutional funding tracks, eligibility demands, and submit research applications.</p>
-            <Link to="/funding" className="btn-primary">Explore Schemes</Link>
-          </div>
-
-          <div className="glass-card" style={{ padding: '2rem', backgroundColor: '#ffffff' }}>
-            <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem', color: 'var(--secondary-color)' }}>Innovation Hub Projects</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Collaborate on active innovation tasks, technology pipelines, and intellectual assets.</p>
-            <Link to="/innovation" className="btn-primary">View Projects</Link>
-          </div>
-
-        </section>
+        {/* Funding Detail View Modal */}
+        {selectedRec && (
+          <FundingDetailModal 
+            recommendation={selectedRec} 
+            onClose={() => setSelectedRec(null)}
+            onFeedback={handleFeedback}
+          />
+        )}
 
       </div>
-    </div>
+    </AppLayout>
   )
 }
 
