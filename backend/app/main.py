@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routes import auth, users, publications, patents
+from app.routes import auth, users, publications, patents, funding, rag
 import os
 from dotenv import load_dotenv
 
@@ -18,11 +18,11 @@ app = FastAPI(
 )
 
 # Setup CORS Origins list
-# Fallback to local react client
 ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "*"
 ]
 
 app.add_middleware(
@@ -38,6 +38,14 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users & Profiles"])
 app.include_router(publications.router, prefix="/api/v1/publications", tags=["Publications"])
 app.include_router(patents.router, prefix="/api/v1/patents", tags=["Patents"])
+
+# Funding & Recommendation routes (mounted on both /api/funding and /api/v1/funding for maximum compatibility)
+app.include_router(funding.router, prefix="/api/funding", tags=["Funding & Recommendations"])
+app.include_router(funding.router, prefix="/api/v1/funding", tags=["Funding & Recommendations"])
+
+# Hybrid RAG routes (mounted on /api/rag and /api/v1/rag)
+app.include_router(rag.router, prefix="/api/rag", tags=["Hybrid RAG"])
+app.include_router(rag.router, prefix="/api/v1/rag", tags=["Hybrid RAG"])
 
 @app.get("/")
 def read_root():

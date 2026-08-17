@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional, List
+from typing import Optional, List, Any
 from pydantic import BaseModel, EmailStr
 
 # ==========================================
@@ -110,7 +110,6 @@ class User(UserBase):
     id: int
     created_at: datetime
     
-    # Nested relations (optional for response representation)
     profile: Optional[ResearchProfile] = None
     publications: List[Publication] = []
     patents: List[Patent] = []
@@ -131,3 +130,62 @@ class TokenData(BaseModel):
 class ForgotPasswordRequest(BaseModel):
     email: str
 
+# ==========================================
+# FUNDING SCHEMAS
+# ==========================================
+class FundingOpportunityBase(BaseModel):
+    title: str
+    funder: str
+    amount_range: str
+    deadline: date
+    semantic_fit: Optional[int] = None
+    match_badges: Optional[str] = None
+    description: Optional[str] = None
+    research_domains: Optional[str] = None
+    technology_areas: Optional[str] = None
+    keywords: Optional[str] = None
+    eligibility: Optional[str] = None
+    research_stage: Optional[str] = None
+    geographic_scope: Optional[str] = None
+    funding_type: Optional[str] = None
+    status: str = "open"
+
+class FundingOpportunityCreate(FundingOpportunityBase):
+    pass
+
+class FundingOpportunitySchema(FundingOpportunityBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class FundingRecommendationItem(BaseModel):
+    funding_id: int
+    title: str
+    funder: str
+    amount_range: str
+    deadline: str
+    match_score: int
+    reason: str
+    matched_signals: List[str] = []
+    unmatched_signals: List[str] = []
+    status: Optional[str] = "recommended"
+
+class FundingRecommendationResponse(BaseModel):
+    user_id: int
+    researcher_profile: Optional[dict] = None
+    recommendations: List[FundingRecommendationItem] = []
+
+class FundingFeedbackRequest(BaseModel):
+    user_id: int
+    funding_id: int
+    feedback: str # relevant, not_relevant, saved, applied, dismissed
+
+class RAGChatRequest(BaseModel):
+    query: str
+    top_k: Optional[int] = 5
+
+class RAGChatResponse(BaseModel):
+    query: str
+    answer: str
+    sources: List[dict] = []

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { Sparkles, Lock, Mail, ArrowRight } from 'lucide-react'
 
 function Login() {
   const [email, setEmail] = useState('')
@@ -25,33 +26,120 @@ function Login() {
   }
 
   return (
-    <div style={{ display: 'flex', flexGrow: 1, justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '1rem' }}>
-      <div className="glass-card" style={{ padding: '2.5rem', width: '100%', maxWidth: '420px', backgroundColor: '#ffffff' }}>
-        <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--primary-color)' }}>Welcome Back</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Login to access funding & innovation tools.</p>
-        
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+      width: '100%',
+      padding: '1.5rem',
+      backgroundColor: 'var(--bg-dark)'
+    }}>
+      <div 
+        className="ai-card glow-animation" 
+        style={{ 
+          padding: '2.5rem', 
+          width: '100%', 
+          maxWidth: '440px',
+          background: 'rgba(15, 23, 42, 0.95)',
+          border: '1px solid var(--border-glow)'
+        }}
+      >
+        {/* Brand Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1.5rem' }}>
+          <div style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, var(--accent-cyan) 0%, #0284C7 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)'
+          }}>
+            <Sparkles size={24} color="#FFFFFF" />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#F8FAFC', margin: 0 }}>
+              AI Fund Platform
+            </h2>
+            <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan-light)', fontWeight: 500 }}>
+              Research & Innovation Intelligence
+            </span>
+          </div>
+        </div>
+
+        <h3 style={{ fontSize: '1.25rem', color: '#F8FAFC', fontWeight: 700, marginBottom: '0.35rem' }}>
+          Welcome Back
+        </h3>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+          Sign in to access AI recommendations, research profiles, and grant metrics.
+        </p>
+
         {error && (
-          <div style={{ padding: '0.75rem', borderRadius: '6px', backgroundColor: '#fee2e2', color: '#991b1b', fontSize: '0.875rem', marginBottom: '1rem', fontWeight: 500 }}>
+          <div style={{
+            padding: '0.75rem 1rem',
+            borderRadius: '10px',
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: '#EF4444',
+            fontSize: '0.85rem',
+            marginBottom: '1.25rem'
+          }}>
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Email Address</label>
-            <input className="input-field" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="name@domain.com" />
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+              Email Address
+            </label>
+            <div style={{ position: 'relative' }}>
+              <Mail size={16} color="#94A3B8" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
+              <input 
+                className="ai-input" 
+                type="email" 
+                value={email} 
+                onChange={e => setEmail(e.target.value)} 
+                required 
+                placeholder="researcher@university.edu" 
+                style={{ paddingLeft: '2.5rem' }}
+              />
+            </div>
           </div>
+
           <div>
-            <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Password</label>
-            <input className="input-field" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+              Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <Lock size={16} color="#94A3B8" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
+              <input 
+                className="ai-input" 
+                type="password" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                required 
+                placeholder="••••••••" 
+                style={{ paddingLeft: '2.5rem' }}
+              />
+            </div>
           </div>
-          <button className="btn-primary" type="submit" disabled={loading} style={{ marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}>
-            {loading ? 'Signing In...' : 'Sign In'}
+
+          <button 
+            className="btn-ai-primary" 
+            type="submit" 
+            disabled={loading} 
+            style={{ marginTop: '0.5rem', width: '100%', opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? 'Authenticating...' : 'Sign In to Dashboard'}
+            {!loading && <ArrowRight size={16} />}
           </button>
         </form>
-        
-        <p style={{ marginTop: '1.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-          Don't have an account? <Link to="/register" style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: 650 }}>Register here</Link>
+
+        <p style={{ marginTop: '1.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+          Don't have an account? <Link to="/register" style={{ color: 'var(--accent-cyan-light)', textDecoration: 'none', fontWeight: 600 }}>Create an account</Link>
         </p>
       </div>
     </div>

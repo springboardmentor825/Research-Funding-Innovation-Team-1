@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import Navbar from '../components/common/Navbar'
+import AppLayout from '../components/layout/AppLayout'
 import publicationsService from '../services/publications'
+import { BookOpen, Plus, Edit3, Trash2, CheckCircle2, AlertCircle, Calendar, Hash } from 'lucide-react'
 
 function Publications() {
   const [publications, setPublications] = useState([])
@@ -22,7 +23,7 @@ function Publications() {
     setError('')
     try {
       const data = await publicationsService.list()
-      setPublications(data)
+      setPublications(data || [])
     } catch (err) {
       setError('Failed to fetch publications list.')
     } finally {
@@ -96,67 +97,78 @@ function Publications() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f5f8ff' }}>
-      <Navbar />
-      <div style={{ padding: '0 2rem 2rem 2rem', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
+    <AppLayout
+      title="Publications Portfolio"
+      subtitle="Manage your authored papers, DOIs, and journal metadata"
+    >
+      <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        {/* Header Action Row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>Publications Registry</h1>
-            <p style={{ color: 'var(--text-secondary)' }}>Manage your academic journals, papers, and scientific records.</p>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F8FAFC', margin: 0 }}>
+              Academic Publications ({publications.length})
+            </h2>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Publications provide semantic matching signals for your funding recommendations
+            </p>
           </div>
+
           {!isEditing && (
-            <button className="btn-primary" onClick={() => setIsEditing(true)}>Add Paper</button>
+            <button className="btn-ai-primary" onClick={() => setIsEditing(true)}>
+              <Plus size={16} /> Register Paper
+            </button>
           )}
-        </header>
+        </div>
 
         {success && (
-          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#d1fae5', color: '#065f46', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-            {success}
+          <div className="ai-card" style={{ padding: '1rem', border: '1px solid rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.1)', color: '#34D399', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CheckCircle2 size={18} /> {success}
           </div>
         )}
 
         {error && (
-          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#fee2e2', color: '#991b1b', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-            {error}
+          <div className="ai-card" style={{ padding: '1rem', border: '1px solid rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <AlertCircle size={18} /> {error}
           </div>
         )}
 
         {/* FORMS */}
         {isEditing && (
-          <div className="glass-card" style={{ padding: '2rem', marginBottom: '2.5rem', backgroundColor: '#ffffff' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', color: 'var(--primary-color)' }}>
+          <div className="ai-card" style={{ padding: '2rem' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1.25rem' }}>
               {editingId ? 'Edit Publication Records' : 'Register New Publication Study'}
             </h3>
+
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Title *</label>
-                <input className="input-field" type="text" value={title} onChange={e => setTitle(e.target.value)} required placeholder="Optimization of Federated Learning Protocols" />
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>Paper Title *</label>
+                <input className="ai-input" type="text" value={title} onChange={e => setTitle(e.target.value)} required placeholder="Optimization of RAG Retrieval Architectures" />
               </div>
-              
+
               <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Authors * (Comma Separated)</label>
-                <input className="input-field" type="text" value={authors} onChange={e => setAuthors(e.target.value)} required placeholder="Jane Doe, John Smith, Bob Lee" />
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>Authors * (Comma Separated)</label>
+                <input className="ai-input" type="text" value={authors} onChange={e => setAuthors(e.target.value)} required placeholder="Jane Doe, John Smith, Bob Lee" />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Journal *</label>
-                  <input className="input-field" type="text" value={journal} onChange={e => setJournal(e.target.value)} required placeholder="IEEE Journal of Machine Learning" />
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>Journal / Conference *</label>
+                  <input className="ai-input" type="text" value={journal} onChange={e => setJournal(e.target.value)} required placeholder="IEEE Transactions on Neural Networks" />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Year *</label>
-                  <input className="input-field" type="number" min="1500" max="2100" value={pubYear} onChange={e => setPubYear(e.target.value)} required placeholder="2026" />
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>Year *</label>
+                  <input className="ai-input" type="number" min="1900" max="2100" value={pubYear} onChange={e => setPubYear(e.target.value)} required placeholder="2026" />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>DOI Identifier</label>
-                  <input className="input-field" type="text" value={doi} onChange={e => setDoi(e.target.value)} placeholder="10.1002/jml.204" />
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>DOI Identifier</label>
+                  <input className="ai-input" type="text" value={doi} onChange={e => setDoi(e.target.value)} placeholder="10.1002/jml.204" />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                <button type="button" className="btn-secondary" onClick={resetForm}>Cancel</button>
-                <button type="submit" className="btn-primary">Save Publication</button>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                <button type="button" className="btn-ai-secondary" onClick={resetForm}>Cancel</button>
+                <button type="submit" className="btn-ai-primary">Save Publication</button>
               </div>
             </form>
           </div>
@@ -166,33 +178,55 @@ function Publications() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Loading publication registries...</div>
         ) : publications.length === 0 ? (
-          <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#ffffff' }}>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '0' }}>You have not recorded any publications yet. Enter details above.</p>
+          <div className="ai-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+            <BookOpen size={36} color="#64748B" style={{ marginBottom: '0.75rem' }} />
+            <h3 style={{ color: '#F8FAFC', marginBottom: '0.25rem' }}>No Publications Registered</h3>
+            <p style={{ fontSize: '0.875rem' }}>Add your publications above to boost funding recommendation match scores.</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {publications.map((pub) => (
-              <div key={pub.publication_id} className="glass-card" style={{ padding: '1.75rem', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ paddingRight: '1rem' }}>
-                  <h3 style={{ fontSize: '1.2rem', color: '#1e293b', marginBottom: '0.5rem', fontWeight: 650 }}>{pub.title}</h3>
-                  <p style={{ color: '#475569', fontSize: '0.925rem', marginBottom: '0.5rem' }}>
+              <div key={pub.publication_id} className="ai-card" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ flexGrow: 1 }}>
+                  <h3 style={{ fontSize: '1.15rem', color: '#F8FAFC', marginBottom: '0.35rem', fontWeight: 700 }}>{pub.title}</h3>
+                  <p style={{ color: '#94A3B8', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                     <strong>Authors:</strong> {pub.authors}
                   </p>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                    <span>📚 <em>{pub.journal}</em></span>
+                  
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', fontSize: '0.825rem', color: 'var(--accent-cyan-light)' }}>
+                    <span>📚 {pub.journal}</span>
                     <span>•</span>
-                    <span>📆 {pub.publication_year}</span>
+                    <span><Calendar size={13} style={{ verticalAlign: 'middle', marginRight: '0.2rem' }} /> {pub.publication_year}</span>
                     {pub.doi && (
                       <>
                         <span>•</span>
-                        <span style={{ fontFamily: 'monospace' }}>DOI: {pub.doi}</span>
+                        <span style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>DOI: {pub.doi}</span>
                       </>
                     )}
                   </div>
                 </div>
+
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => handleEdit(pub)}>Edit</button>
-                  <button className="btn-danger" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => handleDelete(pub.publication_id)}>Delete</button>
+                  <button className="btn-ai-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }} onClick={() => handleEdit(pub)}>
+                    <Edit3 size={14} /> Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(pub.publication_id)}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: '#EF4444',
+                      padding: '0.4rem 0.75rem',
+                      borderRadius: '8px',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem'
+                    }}
+                  >
+                    <Trash2 size={14} /> Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -200,7 +234,7 @@ function Publications() {
         )}
 
       </div>
-    </div>
+    </AppLayout>
   )
 }
 

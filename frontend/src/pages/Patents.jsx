@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import Navbar from '../components/common/Navbar'
+import AppLayout from '../components/layout/AppLayout'
 import patentsService from '../services/patents'
+import { Award, Plus, Edit3, Trash2, CheckCircle2, AlertCircle, Calendar, Building, Cpu } from 'lucide-react'
 
 function Patents() {
   const [patents, setPatents] = useState([])
@@ -8,13 +9,13 @@ function Patents() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  // Form states
+  // Form states matching DB columns: title, inventor, assignee, technology_domain, filing_date
   const [isEditing, setIsEditing] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [title, setTitle] = useState('')
   const [inventor, setInventor] = useState('')
   const [assignee, setAssignee] = useState('')
-  const [techDomain, setTechDomain] = useState('')
+  const [technologyDomain, setTechnologyDomain] = useState('')
   const [filingDate, setFilingDate] = useState('')
 
   const fetchPatents = async () => {
@@ -22,9 +23,10 @@ function Patents() {
     setError('')
     try {
       const data = await patentsService.list()
-      setPatents(data)
+      setPatents(data || [])
     } catch (err) {
-      setError('Failed to fetch patents list.')
+      console.error('Fetch patents error:', err)
+      setError('Failed to fetch patents list from database.')
     } finally {
       setLoading(false)
     }
@@ -38,49 +40,54 @@ function Patents() {
     e.preventDefault()
     setError('')
     setSuccess('')
+
     const payload = {
       title,
       inventor,
       assignee,
-      technology_domain: techDomain,
+      technology_domain: technologyDomain,
       filing_date: filingDate
     }
 
     try {
       if (editingId) {
         const updated = await patentsService.update(editingId, payload)
-        setPatents(patents.map(p => p.patent_id === editingId ? updated : p))
+        setPatents(prev => prev.map(p => p.patent_id === editingId ? updated : p))
         setSuccess('Patent record updated successfully!')
       } else {
         const created = await patentsService.create(payload)
-        setPatents([...patents, created])
-        setSuccess('Patent record registered successfully!')
+        setPatents(prev => [...prev, created])
+        setSuccess('Patent record created successfully!')
       }
       resetForm()
+      // Refresh list to ensure clean DB state
+      fetchPatents()
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to save patent details. Verify date inputs.')
+      console.error('Save patent error:', err)
+      setError(err.response?.data?.detail || 'Failed to save patent. Please ensure all required fields are filled.')
     }
   }
 
-  const handleEdit = (pt) => {
+  const handleEdit = (pat) => {
     setIsEditing(true)
-    setEditingId(pt.patent_id)
-    setTitle(pt.title)
-    setInventor(pt.inventor)
-    setAssignee(pt.assignee)
-    setTechDomain(pt.technology_domain)
-    setFilingDate(pt.filing_date)
+    setEditingId(pat.patent_id)
+    setTitle(pat.title || '')
+    setInventor(pat.inventor || '')
+    setAssignee(pat.assignee || '')
+    setTechnologyDomain(pat.technology_domain || '')
+    setFilingDate(pat.filing_date || '')
   }
 
-  const handleDelete = async (patentId) => {
+  const handleDelete = async (patId) => {
     if (!window.confirm('Are you sure you want to delete this patent record?')) return
     setError('')
     setSuccess('')
     try {
-      await patentsService.delete(patentId)
-      setPatents(patents.filter(p => p.patent_id !== patentId))
-      setSuccess('Patent record deleted successfully!')
+      await patentsService.delete(patId)
+      setPatents(prev => prev.filter(p => p.patent_id !== patId))
+      setSuccess('Patent deleted successfully!')
     } catch (err) {
+      console.error('Delete patent error:', err)
       setError('Failed to delete patent record.')
     }
   }
@@ -91,106 +98,140 @@ function Patents() {
     setTitle('')
     setInventor('')
     setAssignee('')
-    setTechDomain('')
+    setTechnologyDomain('')
     setFilingDate('')
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f5f8ff' }}>
-      <Navbar />
-      <div style={{ padding: '0 2rem 2rem 2rem', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
+    <AppLayout
+      title="Intellectual Property & Patents"
+      subtitle="Track patent filings, technology domains, assignees, and inventor metadata"
+    >
+      <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        {/* Header Bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>IP & Patents Portal</h1>
-            <p style={{ color: 'var(--text-secondary)' }}>Register and track filed intellectual properties, technology claims, and assignments.</p>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F8FAFC', margin: 0 }}>
+              Filed Intellectual Assets ({patents.length})
+            </h2>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Patents enhance technology domain matching in funding recommendations
+            </p>
           </div>
-          {!isEditing && (
-            <button className="btn-primary" onClick={() => setIsEditing(true)}>Add Patent</button>
-          )}
-        </header>
 
+          {!isEditing && (
+            <button className="btn-ai-primary" onClick={() => setIsEditing(true)}>
+              <Plus size={16} /> Register Patent
+            </button>
+          )}
+        </div>
+
+        {/* Notifications */}
         {success && (
-          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#d1fae5', color: '#065f46', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-            {success}
+          <div className="ai-card" style={{ padding: '1rem', border: '1px solid rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.1)', color: '#34D399', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CheckCircle2 size={18} /> {success}
           </div>
         )}
 
         {error && (
-          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#fee2e2', color: '#991b1b', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-            {error}
+          <div className="ai-card" style={{ padding: '1rem', border: '1px solid rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <AlertCircle size={18} /> {error}
           </div>
         )}
 
-        {/* DETAILS FORMS */}
+        {/* Form Modal / Inline Box */}
         {isEditing && (
-          <div className="glass-card" style={{ padding: '2rem', marginBottom: '2.5rem', backgroundColor: '#ffffff' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', color: 'var(--primary-color)' }}>
-              {editingId ? 'Edit Patent Registry Details' : 'Register New Patent Record'}
+          <div className="ai-card" style={{ padding: '2rem' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1.25rem' }}>
+              {editingId ? 'Edit Patent Records' : 'Register New Intellectual Property Asset'}
             </h3>
-            
+
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Patent Title *</label>
-                <input className="input-field" type="text" value={title} onChange={e => setTitle(e.target.value)} required placeholder="Neural network weight pruning design algorithm" />
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>Patent Title *</label>
+                <input className="ai-input" type="text" value={title} onChange={e => setTitle(e.target.value)} required placeholder="Autonomous Neural Network Vector Accelerator" />
               </div>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Primary Inventor(s) *</label>
-                  <input className="input-field" type="text" value={inventor} onChange={e => setInventor(e.target.value)} required placeholder="Dr. Jane Doe, Dr. Al Morris" />
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>Inventor(s) *</label>
+                  <input className="ai-input" type="text" value={inventor} onChange={e => setInventor(e.target.value)} required placeholder="Dr. Jane Doe, John Smith" />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Assignee Institute *</label>
-                  <input className="input-field" type="text" value={assignee} onChange={e => setAssignee(e.target.value)} required placeholder="Infosys Tech Licensing LLC" />
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>Assignee / Institution *</label>
+                  <input className="ai-input" type="text" value={assignee} onChange={e => setAssignee(e.target.value)} required placeholder="Stanford AI Institute / TechCorp" />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Technology Domain *</label>
-                  <input className="input-field" type="text" value={techDomain} onChange={e => setTechDomain(e.target.value)} required placeholder="Artificial Intelligence / Quantum Networks" />
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>Technology Domain *</label>
+                  <input className="ai-input" type="text" value={technologyDomain} onChange={e => setTechnologyDomain(e.target.value)} required placeholder="Artificial Intelligence / Quantum Computing" />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Filing Date *</label>
-                  <input className="input-field" type="date" value={filingDate} onChange={e => setFilingDate(e.target.value)} required />
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>Filing Date *</label>
+                  <input className="ai-input" type="date" value={filingDate} onChange={e => setFilingDate(e.target.value)} required />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                <button type="button" className="btn-secondary" onClick={resetForm}>Cancel</button>
-                <button type="submit" className="btn-primary">Register Patent</button>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                <button type="button" className="btn-ai-secondary" onClick={resetForm}>Cancel</button>
+                <button type="submit" className="btn-ai-primary">Save Patent</button>
               </div>
             </form>
           </div>
         )}
 
-        {/* LISTINGS */}
+        {/* Listings */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Loading patents list...</div>
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Loading patent registries...</div>
         ) : patents.length === 0 ? (
-          <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#ffffff' }}>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '0' }}>You have not registered any patents yet. Enter details above.</p>
+          <div className="ai-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+            <Award size={36} color="#64748B" style={{ marginBottom: '0.75rem' }} />
+            <h3 style={{ color: '#F8FAFC', marginBottom: '0.25rem' }}>No Patents Recorded</h3>
+            <p style={{ fontSize: '0.875rem' }}>Add intellectual property records above to track institutional innovations.</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            {patents.map((patent) => (
-              <div key={patent.patent_id} className="glass-card" style={{ padding: '1.75rem', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ paddingRight: '1rem' }}>
-                  <h3 style={{ fontSize: '1.2rem', color: '#1e293b', marginBottom: '0.5rem', fontWeight: 650 }}>{patent.title}</h3>
-                  <div style={{ color: '#475569', fontSize: '0.925rem', marginBottom: '0.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 2rem' }}>
-                    <span><strong>Inventors:</strong> {patent.inventor}</span>
-                    <span><strong>Assignee:</strong> {patent.assignee}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {patents.map((pat) => (
+              <div key={pat.patent_id} className="ai-card" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ flexGrow: 1 }}>
+                  <h3 style={{ fontSize: '1.15rem', color: '#F8FAFC', marginBottom: '0.35rem', fontWeight: 700 }}>{pat.title}</h3>
+                  
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', fontSize: '0.875rem', color: '#94A3B8', marginBottom: '0.5rem' }}>
+                    <span><strong>Inventor:</strong> {pat.inventor}</span>
+                    <span><strong>Assignee:</strong> {pat.assignee}</span>
                   </div>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                    <span>🌐 Technology: <strong>{patent.technology_domain}</strong></span>
+                  
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', fontSize: '0.825rem', color: 'var(--accent-cyan-light)' }}>
+                    <span><Cpu size={13} style={{ verticalAlign: 'middle', marginRight: '0.25rem' }} /> Domain: <strong style={{ color: '#F8FAFC' }}>{pat.technology_domain}</strong></span>
                     <span>•</span>
-                    <span>📅 Filed: {patent.filing_date}</span>
+                    <span><Calendar size={13} style={{ verticalAlign: 'middle', marginRight: '0.25rem' }} /> Filed: {pat.filing_date}</span>
                   </div>
                 </div>
+
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => handleEdit(patent)}>Edit</button>
-                  <button className="btn-danger" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => handleDelete(patent.patent_id)}>Delete</button>
+                  <button className="btn-ai-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }} onClick={() => handleEdit(pat)}>
+                    <Edit3 size={14} /> Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(pat.patent_id)}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: '#EF4444',
+                      padding: '0.4rem 0.75rem',
+                      borderRadius: '8px',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem'
+                    }}
+                  >
+                    <Trash2 size={14} /> Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -198,7 +239,7 @@ function Patents() {
         )}
 
       </div>
-    </div>
+    </AppLayout>
   )
 }
 

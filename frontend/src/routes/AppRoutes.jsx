@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import Login from '../pages/Login'
 import Register from '../pages/Register'
 import Dashboard from '../pages/Dashboard'
+import Recommendations from '../pages/Recommendations'
 import Funding from '../pages/Funding'
 import Innovation from '../pages/Innovation'
 import Profile from '../pages/Profile'
@@ -13,7 +14,11 @@ import Patents from '../pages/Patents'
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'var(--primary-color)' }}>Loading Profile...</div>
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: 'var(--bg-dark)', color: 'var(--accent-cyan-light)', fontWeight: 600 }}>
+        Authenticating AI Session...
+      </div>
+    )
   }
   if (!user) {
     return <Navigate to="/login" replace />
@@ -30,6 +35,12 @@ const AppRoutes = () => {
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/recommendations" element={
+        <ProtectedRoute>
+          <Recommendations />
         </ProtectedRoute>
       } />
       
@@ -69,4 +80,3 @@ const AppRoutes = () => {
 }
 
 export default AppRoutes
-
