@@ -27,13 +27,20 @@ function Dashboard() {
     setLoading(true)
     setError(null)
     try {
-      // Fetch dynamic user recommendations from backend API
-      const recsData = await fundingService.getRecommendations(userId, 10)
+      // Fetch dynamic user recommendations and saved items from backend API
+      const [recsData, savedData] = await Promise.all([
+        fundingService.getRecommendations(userId, 10),
+        fundingService.getSavedFunding(userId)
+      ])
       const safeRecsList = Array.isArray(recsData) 
         ? recsData 
         : (recsData?.recommendations || [])
       
       setRecommendations(safeRecsList)
+
+      if (Array.isArray(savedData)) {
+        setSavedIds(new Set(savedData.map(item => item.funding_id || item.id)))
+      }
 
       if (recsData?.researcher_profile) {
         setUserProfile(recsData.researcher_profile)
@@ -63,10 +70,19 @@ function Dashboard() {
   const handleFeedback = async (rec, feedbackType) => {
     try {
       const oppId = rec.funding_id || rec.id
-      await fundingService.sendFeedback(userId, oppId, feedbackType)
+      const isCurrentlySaved = savedIds.has(oppId)
+      const targetFeedback = (feedbackType === 'saved' && isCurrentlySaved) ? 'relevant' : feedbackType
       
-      if (feedbackType === 'saved') {
+      await fundingService.sendFeedback(userId, oppId, targetFeedback)
+      
+      if (targetFeedback === 'saved') {
         setSavedIds(prev => new Set(prev).add(oppId))
+      } else if (feedbackType === 'saved' && isCurrentlySaved) {
+        setSavedIds(prev => {
+          const next = new Set(prev)
+          next.delete(oppId)
+          return next
+        })
       } else if (feedbackType === 'dismissed') {
         setRecommendations(prev => (Array.isArray(prev) ? prev : []).filter(r => (r.funding_id || r.id) !== oppId))
       }

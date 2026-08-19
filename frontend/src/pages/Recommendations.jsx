@@ -69,10 +69,19 @@ function Recommendations() {
   const handleFeedback = async (rec, feedbackType) => {
     try {
       const oppId = rec.funding_id || rec.id
-      await fundingService.sendFeedback(userId, oppId, feedbackType)
+      const isCurrentlySaved = savedIds.has(oppId)
+      const targetFeedback = (feedbackType === 'saved' && isCurrentlySaved) ? 'relevant' : feedbackType
+
+      await fundingService.sendFeedback(userId, oppId, targetFeedback)
       
-      if (feedbackType === 'saved') {
+      if (targetFeedback === 'saved') {
         setSavedIds(prev => new Set(prev).add(oppId))
+      } else if (feedbackType === 'saved' && isCurrentlySaved) {
+        setSavedIds(prev => {
+          const next = new Set(prev)
+          next.delete(oppId)
+          return next
+        })
       } else if (feedbackType === 'dismissed') {
         setRecommendations(prev => (Array.isArray(prev) ? prev : []).filter(r => (r.funding_id || r.id) !== oppId))
       }

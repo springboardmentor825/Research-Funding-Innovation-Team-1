@@ -29,8 +29,14 @@ function Funding() {
       if (statusFilter) filters.status = statusFilter
       if (searchQuery) filters.query = searchQuery
 
-      const data = await fundingService.searchFunding(filters)
+      const [data, savedData] = await Promise.all([
+        fundingService.searchFunding(filters),
+        fundingService.getSavedFunding(userId)
+      ])
       setOpportunities(data || [])
+      if (Array.isArray(savedData)) {
+        setSavedIds(new Set(savedData.map(item => item.funding_id || item.id)))
+      }
     } catch (err) {
       console.error('Search funding API error:', err)
     } finally {
@@ -45,10 +51,20 @@ function Funding() {
   const handleFeedback = async (rec, feedbackType) => {
     try {
       const oppId = rec.funding_id || rec.id
-      await fundingService.sendFeedback(user?.id || 16, oppId, feedbackType)
-      if (feedbackType === 'saved') {
-        setSavedIds(prev => new Set(prev).add(oppId))
-      }
+      const isCurrentlySaved = savedIds.has(oppId)
+      const targetFeedback = (feedbackType === 'saved' && isCurrentlySaved) ? 'relevant' : feedbackType
+      
+      await fundingService.sendFeedback(userId, oppId, targetFeedback)
+      
+      setSavedIds(prev => {
+        const next = new Set(prev)
+        if (targetFeedback === 'saved') {
+          next.add(oppId)
+        } else {
+          next.delete(oppId)
+        }
+        return next
+      })
     } catch (err) {
       console.error('Feedback error:', err)
     }

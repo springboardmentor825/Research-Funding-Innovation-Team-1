@@ -23,28 +23,6 @@ router = APIRouter()
 # RECOMMENDATION ENGINE ENDPOINTS
 # ============================================================
 
-@router.get("/recommendations/{user_id}", response_model=FundingRecommendationResponse)
-@router.post("/recommendations/{user_id}", response_model=FundingRecommendationResponse)
-def get_user_funding_recommendations(
-    user_id: int,
-    top_k: int = Query(10, ge=1, le=100, description="Number of recommendations to return"),
-    db: Session = Depends(get_db)
-):
-    """
-    Generate personalized funding opportunity recommendations for a researcher.
-    Evaluates profile, publications, patents, eligibility, and semantic fit.
-    """
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with ID {user_id} not found."
-        )
-
-    recommendations_data = rank_funding_opportunities(db, user_id, top_k=top_k)
-    return recommendations_data
-
-
 @router.post("/recommendations/feedback", status_code=status.HTTP_200_OK)
 def submit_recommendation_feedback(
     feedback_in: FundingFeedbackRequest,
@@ -94,6 +72,28 @@ def submit_recommendation_feedback(
         "status": "success",
         "message": f"Feedback '{feedback_in.feedback}' recorded for funding_id {feedback_in.funding_id}."
     }
+
+
+@router.get("/recommendations/{user_id}", response_model=FundingRecommendationResponse)
+@router.post("/recommendations/{user_id}", response_model=FundingRecommendationResponse)
+def get_user_funding_recommendations(
+    user_id: int,
+    top_k: int = Query(10, ge=1, le=100, description="Number of recommendations to return"),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate personalized funding opportunity recommendations for a researcher.
+    Evaluates profile, publications, patents, eligibility, and semantic fit.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID {user_id} not found."
+        )
+
+    recommendations_data = rank_funding_opportunities(db, user_id, top_k=top_k)
+    return recommendations_data
 
 @router.get("/saved/{user_id}", response_model=List[FundingRecommendationItem])
 def get_user_saved_funding(user_id: int, db: Session = Depends(get_db)):

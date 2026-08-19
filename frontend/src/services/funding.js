@@ -56,6 +56,22 @@ const fundingService = {
       })
       return response.data
     }
+  },
+
+  // Get saved funding opportunities for a user
+  getSavedFunding: async (userId) => {
+    try {
+      const response = await api.get(`/funding/saved/${userId}`)
+      return Array.isArray(response.data) ? response.data : []
+    } catch (err) {
+      try {
+        const response = await api.get(`/v1/funding/saved/${userId}`)
+        return Array.isArray(response.data) ? response.data : []
+      } catch (innerErr) {
+        console.error('getSavedFunding service error:', innerErr)
+        return []
+      }
+    }
   }
 }
 
