@@ -147,7 +147,15 @@ def generate_rag_answer(query: str, context_passages: List[str], sources: List[D
             "• Semantic vector embeddings (Sentence Transformers) to retrieve relevant research context before generating answers."
         )
 
-    # 4. Try Gemini API generation if key is present
+    # 4. Handle Out-of-Domain / Unsupported Questions (e.g. IPL, sports, movies, elections)
+    out_of_domain_keywords = ["ipl", "cricket", "football", "who won", "movie", "actor", "celebrity", "super bowl", "election", "song", "president of us"]
+    if any(k in q_lower for k in out_of_domain_keywords):
+        return (
+            f"I do not have sufficient information in the platform research database to answer '{query}'. "
+            "My knowledge is specialized in research funding opportunities, academic publications, patents, and platform analytics."
+        )
+
+    # 5. Try Gemini API generation if key is present
     context_str = "\n".join(context_passages) if context_passages else "No direct database records found."
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if api_key:
@@ -168,6 +176,7 @@ Guidelines:
 - If asked about funding opportunities, highlight grant titles, funding amounts, funders, and deadlines.
 - Use clear bullet points and professional formatting.
 - Keep responses factual based on the records.
+- If the question is outside academic research, patents, or funding, clearly state that information is insufficient.
 """
             response = model.generate_content(prompt)
             if response and response.text:
@@ -175,7 +184,7 @@ Guidelines:
         except Exception as e:
             print(f"Gemini generation error in RAG: {e}")
 
-    # 5. Query-Specific Synthesis Based on Retrieved Context
+    # 6. Query-Specific Synthesis Based on Retrieved Context
     if primary_intent == "funding" and context_passages:
         fo_items = [f"• {p.replace('Funding Opportunity: ', '')}" for p in context_passages if p.startswith("Funding Opportunity:")]
         if fo_items:
@@ -191,29 +200,54 @@ Guidelines:
         if pat_items:
             return f"Here are the registered intellectual property and patent assets for '{query}':\n\n" + "\n".join(pat_items[:4])
 
-    # 6. General Keyword Matches Found
+    # 7. General Keyword Matches Found
     if context_passages:
         formatted = [f"• {p}" for p in context_passages[:4]]
         return f"Based on your query '{query}', here are the matching platform records:\n\n" + "\n\n".join(formatted)
 
-    # 7. No Database Matches Found
+    # 8. No Database Matches Found
     return (
         f"I searched the platform database for '{query}', but found no specific matching records.\n\n"
         "Try asking about specific research areas such as 'Quantum', 'Artificial Intelligence', 'Clean Energy', 'Patents', or 'Publications'."
     )
+
+# In-memory session chat history log
+_RAG_SESSION_HISTORY: List[Dict[str, Any]] = []
 
 @router.post("/chat", response_model=RAGChatResponse)
 def rag_chat(request: RAGChatRequest, db: Session = Depends(get_db)):
     """
     RAG Chat API: Retrieves database & document context and generates an answer.
     """
-    context_passages, sources, primary_intent = query_database_context(db, request.query)
-    answer = generate_rag_answer(request.query, context_passages, sources, primary_intent)
+    q = request.get_query()
+    if not q.strip():
+        raise HTTPException(status_code=400, detail="Query string cannot be empty.")
+
+    context_passages, sources, primary_intent = query_database_context(db, q)
+    answer = generate_rag_answer(q, context_passages, sources, primary_intent)
+
+    chat_item = {
+        "query": q,
+        "answer": answer,
+        "sources": sources,
+        "intent": primary_intent
+    }
+    _RAG_SESSION_HISTORY.append(chat_item)
 
     return {
-        "query": request.query,
+        "query": q,
         "answer": answer,
         "sources": sources
+    }
+
+@router.get("/history")
+def get_rag_chat_history():
+    """
+    Get recent RAG Chat query & answer history.
+    """
+    return {
+        "history_count": len(_RAG_SESSION_HISTORY),
+        "history": _RAG_SESSION_HISTORY[-20:]
     }
 
 @router.post("/search")
@@ -221,9 +255,10 @@ def rag_search(request: RAGChatRequest, db: Session = Depends(get_db)):
     """
     RAG Search API: Returns retrieved passages and sources for a query.
     """
-    context_passages, sources, primary_intent = query_database_context(db, request.query)
+    q = request.get_query()
+    context_passages, sources, primary_intent = query_database_context(db, q)
     return {
-        "query": request.query,
+        "query": q,
         "passages": context_passages,
         "sources": sources,
         "intent": primary_intent

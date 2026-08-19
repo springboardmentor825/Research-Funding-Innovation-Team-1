@@ -19,10 +19,12 @@ function Funding() {
   const [statusFilter, setStatusFilter] = useState('open')
   const [sortBy, setSortBy] = useState('score_desc')
 
+  const userId = user?.id || 16
+
   const fetchOpportunities = async () => {
     setLoading(true)
     try {
-      const filters = {}
+      const filters = { user_id: userId }
       if (domainFilter) filters.domain = domainFilter
       if (statusFilter) filters.status = statusFilter
       if (searchQuery) filters.query = searchQuery

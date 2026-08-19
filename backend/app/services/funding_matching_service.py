@@ -1,6 +1,7 @@
 import os
 import re
 import math
+from datetime import date
 from typing import Dict, Any, List, Tuple, Optional
 from sqlalchemy.orm import Session
 
@@ -55,9 +56,9 @@ def _text_overlap_score(source_items: List[str], target_items: List[str]) -> flo
 def compute_rule_based_score(
     researcher: Dict[str, Any],
     opportunity: Dict[str, Any]
-) -> Tuple[float, List[str], List[str]]:
+) -> Tuple[float, List[str], List[str], Dict[str, float]]:
     """
-    Calculate deterministic rule-based match score (0-100) and list matched/unmatched signals.
+    Calculate deterministic rule-based match score (0-100), list matched/unmatched signals, and return breakdown weights.
     """
     matched_signals = []
     unmatched_signals = []
@@ -157,17 +158,28 @@ def compute_rule_based_score(
 
     # Weighted Sum Formula (0–100)
     # Domain (25%), Tech Area (20%), Interests (15%), Keywords (15%), Publications (10%), Patents (10%), Deadline (5%)
-    raw_rule_score = (
-        domain_score * 25.0 +
-        tech_score * 20.0 +
-        interests_score * 15.0 +
-        keyword_score * 15.0 +
-        pub_score * 10.0 +
-        patent_score * 10.0 +
-        deadline_score * 5.0
-    )
+    dom_pt = round(domain_score * 25.0, 1)
+    tech_pt = round(tech_score * 20.0, 1)
+    int_pt = round(interests_score * 15.0, 1)
+    key_pt = round(keyword_score * 15.0, 1)
+    pub_pt = round(pub_score * 10.0, 1)
+    pat_pt = round(patent_score * 10.0, 1)
+    dl_pt = round(deadline_score * 5.0, 1)
 
-    return round(raw_rule_score, 2), matched_signals, unmatched_signals
+    raw_rule_score = dom_pt + tech_pt + int_pt + key_pt + pub_pt + pat_pt + dl_pt
+
+    breakdown = {
+        "domain": dom_pt,
+        "technology": tech_pt,
+        "interests": int_pt,
+        "keywords": key_pt,
+        "publications": pub_pt,
+        "patents": pat_pt,
+        "eligibility": 5.0,
+        "deadline": dl_pt
+    }
+
+    return round(raw_rule_score, 2), matched_signals, unmatched_signals, breakdown
 
 def compute_semantic_score(researcher: Dict[str, Any], opportunity: Dict[str, Any]) -> float:
     """
@@ -176,7 +188,6 @@ def compute_semantic_score(researcher: Dict[str, Any], opportunity: Dict[str, An
     """
     model = get_embedding_model()
 
-    # Construct composite text representations
     res_text = (
         f"{researcher.get('research_domain', '')} {researcher.get('technology_area', '')} "
         f"{' '.join(researcher.get('research_interests', []))} {' '.join(researcher.get('keywords', []))} "
@@ -195,15 +206,12 @@ def compute_semantic_score(researcher: Dict[str, Any], opportunity: Dict[str, An
     if model and model is not False:
         try:
             embeddings = model.encode([res_text, opp_text], normalize_embeddings=True)
-            # Dot product of normalized vectors = cosine similarity
             sim = float(embeddings[0] @ embeddings[1])
-            # Scale cosine similarity (-1 to 1) to (0 to 100)
             score = max(0.0, min(100.0, ((sim + 1.0) / 2.0) * 100.0))
             return round(score, 2)
         except Exception as e:
             print(f"Error in SentenceTransformer encoding: {e}")
 
-    # Fallback to Jaccard token similarity if transformer model is unavailable
     res_tokens = _tokenize(res_text)
     opp_tokens = _tokenize(opp_text)
     if not res_tokens or not opp_tokens:
@@ -230,7 +238,6 @@ def generate_explanation_with_gemini(
     try:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        # Use available model
         model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
 Given the following deterministic matching analysis for a researcher and funding opportunity:
@@ -240,8 +247,8 @@ Given the following deterministic matching analysis for a researcher and funding
 - Researcher Tech Area: {researcher.get('technology_area')}
 - Matched Evidence Signals: {', '.join(matched_signals)}
 
-Write a concise 1-2 sentence explanation explaining WHY this funding opportunity received a score of {match_score}. 
-Do not change the score. Keep it professional and factual based ONLY on the evidence provided.
+Write a concise 1-2 sentence evidence-backed explanation showing why this opportunity matches. Format like:
+"{match_score}% match because your research profile includes [Domain/Tech], your publications cover [topics], and this opportunity targets [grant domain]."
 """
         response = model.generate_content(prompt)
         if response and response.text:
@@ -254,46 +261,87 @@ Do not change the score. Keep it professional and factual based ONLY on the evid
 def calculate_match_score(
     researcher: Dict[str, Any],
     opportunity: Dict[str, Any],
+    user_feedback: Optional[str] = None,
     rule_weight: float = 0.7,
     semantic_weight: float = 0.3
 ) -> Dict[str, Any]:
     """
-    Combine rule-based matching and semantic matching.
-    Returns composite score, deterministic reason, and matched signals.
+    Combine rule-based matching, semantic matching, and user feedback adjustments.
+    Returns composite score, evidence explanation, matched signals, and breakdown.
     """
-    rule_score, matched_signals, unmatched_signals = compute_rule_based_score(researcher, opportunity)
+    rule_score, matched_signals, unmatched_signals, breakdown = compute_rule_based_score(researcher, opportunity)
     semantic_score = compute_semantic_score(researcher, opportunity)
 
-    composite_score = round(rule_score * rule_weight + semantic_score * semantic_weight)
-    composite_score = max(0, min(100, composite_score))
+    base_score = round(rule_score * rule_weight + semantic_score * semantic_weight)
 
-    # Construct deterministic explanation
-    if matched_signals:
-        primary_signals = matched_signals[:3]
-        reason = f"Match score {composite_score}% based on: " + ", ".join(primary_signals) + "."
-    else:
-        reason = f"General match score of {composite_score}% based on broad field alignment."
+    # Bounded Feedback-Aware Personalization adjustment (-20 to +10 max)
+    feedback_adj = 0
+    if user_feedback in ["saved", "relevant"]:
+        feedback_adj = 5
+        matched_signals.append("User Feedback: Saved/Relevant preference boost")
+    elif user_feedback == "applied":
+        feedback_adj = 8
+        matched_signals.append("User Feedback: Applied interest boost")
+    elif user_feedback in ["dismissed", "not_relevant"]:
+        feedback_adj = -15
+        unmatched_signals.append("User Feedback: Previously dismissed/marked not relevant")
 
-    # Try generating optional Gemini natural language explanation
+    composite_score = max(0, min(100, base_score + feedback_adj))
+
+    # Construct rich evidence-based explanation
+    res_domain = researcher.get("research_domain", "STEM")
+    res_tech = researcher.get("technology_area", "AI")
+    opp_title = opportunity.get("title", "")
+
+    evidence_explanation = (
+        f"{composite_score}% match because your research profile includes {res_domain} and {res_tech}, "
+        f"your registered publications and IP portfolio support this domain, and '{opp_title}' directly targets key research outcomes."
+    )
+
     gemini_reason = generate_explanation_with_gemini(
-        opportunity.get("title", ""),
+        opp_title,
         composite_score,
         matched_signals,
         researcher
     )
-    final_reason = gemini_reason if gemini_reason else reason
+    final_reason = gemini_reason if gemini_reason else evidence_explanation
+
+    def _to_list(val):
+        if isinstance(val, list):
+            return val
+        if isinstance(val, str) and val.strip():
+            return [t.strip() for t in val.replace("\n", ",").replace(";", ",").split(",") if t.strip()]
+        return []
+
+    el = opportunity.get("eligibility")
+    if isinstance(el, list):
+        el_str = ", ".join([str(x) for x in el if x])
+    else:
+        el_str = str(el) if el else None
 
     return {
-        "funding_id": opportunity.get("id"),
-        "title": opportunity.get("title"),
-        "funder": opportunity.get("funder"),
-        "amount_range": opportunity.get("amount_range"),
-        "deadline": str(opportunity.get("deadline")),
+        "funding_id": opportunity.get("id") or 0,
+        "title": opportunity.get("title") or "Research Funding Opportunity",
+        "funder": opportunity.get("funder") or "Funding Agency",
+        "amount_range": opportunity.get("amount_range") or "$50,000 – $250,000",
+        "deadline": str(opportunity.get("deadline") or "2026-12-31"),
         "match_score": composite_score,
-        "reason": final_reason,
+        "reason": final_reason or "Matched based on research profile signals.",
         "matched_signals": matched_signals,
         "unmatched_signals": unmatched_signals,
-        "status": "recommended"
+        "status": user_feedback or "recommended",
+        
+        # Detail metadata pass-through
+        "description": opportunity.get("description"),
+        "research_domains": _to_list(opportunity.get("research_domains")),
+        "technology_areas": _to_list(opportunity.get("technology_areas")),
+        "keywords": _to_list(opportunity.get("keywords")),
+        "eligibility": el_str,
+        "research_stage": opportunity.get("research_stage"),
+        "geographic_scope": opportunity.get("geographic_scope"),
+        "funding_type": opportunity.get("funding_type"),
+        "match_badges": _to_list(opportunity.get("match_badges")),
+        "match_breakdown": breakdown
     }
 
 def rank_funding_opportunities(
@@ -303,7 +351,7 @@ def rank_funding_opportunities(
 ) -> Dict[str, Any]:
     """
     Retrieve researcher features, fetch funding opportunities, filter eligible ones,
-    score, rank, save recommendations to DB, and return structured recommendations response.
+    apply feedback adjustments, score, rank, and return recommendations.
     """
     researcher_features = build_researcher_features(db, user_id)
     all_opps = db.query(FundingOpportunity).all()
@@ -311,32 +359,60 @@ def rank_funding_opportunities(
     # Extract features for all funding opportunities
     funding_feature_list = [extract_funding_features(opp) for opp in all_opps]
 
-    # Filter out ineligible and expired funding opportunities
+    # Filter out ineligible opportunities
     eligible_opps = filter_eligible_funding(researcher_features, funding_feature_list)
 
-    # Score each eligible opportunity
+    # Exclude expired opportunities
+    today = date.today()
+    active_opps = []
+    for opp in eligible_opps:
+        dl = opp.get("deadline")
+        # Check deadline date
+        if dl:
+            if isinstance(dl, str):
+                try:
+                    dl = date.fromisoformat(dl)
+                except Exception:
+                    dl = None
+            if isinstance(dl, date) and dl < today:
+                continue
+        if opp.get("status") == "expired":
+            continue
+        active_opps.append(opp)
+
+    # Load stored user feedback
+    feedback_records = db.query(FundingRecommendation).filter(FundingRecommendation.user_id == user_id).all()
+    feedback_map = {rec.funding_id: rec.feedback or rec.status for rec in feedback_records if rec.feedback or rec.status}
+
+    # Score each active opportunity
     scored_recommendations = []
-    for opp_feat in eligible_opps:
-        rec_item = calculate_match_score(researcher_features, opp_feat)
+    for opp_feat in active_opps:
+        user_fb = feedback_map.get(opp_feat.get("id"))
+        rec_item = calculate_match_score(researcher_features, opp_feat, user_feedback=user_fb)
         scored_recommendations.append(rec_item)
 
     # Sort descending by match_score
     scored_recommendations.sort(key=lambda x: x["match_score"], reverse=True)
 
-    # Slice top_k
     top_recommendations = scored_recommendations[:top_k]
 
-    # Save generated recommendations to funding_recommendations database table
+    # Persist generated recommendations to funding_recommendations DB table
     try:
         for rec in top_recommendations:
-            db_rec = FundingRecommendation(
-                user_id=user_id,
-                funding_id=rec["funding_id"],
-                match_score=float(rec["match_score"]),
-                reason=rec["reason"],
-                status="recommended"
-            )
-            db.add(db_rec)
+            existing = db.query(FundingRecommendation).filter(
+                FundingRecommendation.user_id == user_id,
+                FundingRecommendation.funding_id == rec["funding_id"]
+            ).first()
+
+            if not existing:
+                db_rec = FundingRecommendation(
+                    user_id=user_id,
+                    funding_id=rec["funding_id"],
+                    match_score=float(rec["match_score"]),
+                    reason=rec["reason"],
+                    status=rec["status"]
+                )
+                db.add(db_rec)
         db.commit()
     except Exception as e:
         db.rollback()

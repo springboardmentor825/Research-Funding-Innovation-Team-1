@@ -1,23 +1,38 @@
 import React, { useState, useRef, useEffect } from 'react'
 import ragService from '../../services/rag'
-import { Bot, Send, X, Sparkles, User, FileText, HelpCircle } from 'lucide-react'
+import { Bot, Send, X, Sparkles, User, FileText, RefreshCw, ChevronDown, ExternalLink } from 'lucide-react'
 
 function RAGChatDrawer({ isOpen, onClose }) {
   const [query, setQuery] = useState('')
-  const [messages, setMessages] = useState([
-    {
-      sender: 'bot',
-      text: 'Hello! I am your AI Research Assistant. Ask me anything about funding schemes, research papers, patents, or RAG concepts.'
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('rag_chat_messages')
+      return saved ? JSON.parse(saved) : [
+        {
+          sender: 'bot',
+          text: 'Hello! I am your AI Research Assistant. Ask me anything about funding schemes, research papers, patents, or RAG architecture.'
+        }
+      ]
+    } catch {
+      return [
+        {
+          sender: 'bot',
+          text: 'Hello! I am your AI Research Assistant. Ask me anything about funding schemes, research papers, patents, or RAG architecture.'
+        }
+      ]
     }
-  ])
+  })
+
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState(null)
   const messagesEndRef = useRef(null)
 
   const quickPrompts = [
     "What funding opportunities are available?",
     "Show research papers on AI & funding",
     "List registered patents and assignees",
-    "What is Retrieval Augmented Generation?"
+    "What is Retrieval Augmented Generation?",
+    "Who won IPL 2025?"
   ]
 
   const scrollToBottom = () => {
@@ -25,6 +40,11 @@ function RAGChatDrawer({ isOpen, onClose }) {
   }
 
   useEffect(() => {
+    try {
+      sessionStorage.setItem('rag_chat_messages', JSON.stringify(messages))
+    } catch (e) {
+      console.warn('Could not save session chat messages:', e)
+    }
     if (isOpen) {
       scrollToBottom()
     }
@@ -34,6 +54,7 @@ function RAGChatDrawer({ isOpen, onClose }) {
     if (!userText.trim() || loading) return
 
     setQuery('')
+    setErrorMsg(null)
     setMessages(prev => [...prev, { sender: 'user', text: userText }])
     setLoading(true)
 
@@ -49,11 +70,14 @@ function RAGChatDrawer({ isOpen, onClose }) {
       ])
     } catch (err) {
       console.error('RAG Chat error:', err)
+      setErrorMsg('Network or service error. Please verify backend FastAPI server is active.')
       setMessages(prev => [
         ...prev, 
         { 
           sender: 'bot', 
-          text: 'Apologies, I encountered an issue querying the RAG intelligence system. Please ensure backend service is running.' 
+          text: 'Apologies, I encountered an issue querying the RAG intelligence system. Click Retry below to resend your query.',
+          isError: true,
+          failedQuery: userText
         }
       ])
     } finally {
@@ -73,8 +97,8 @@ function RAGChatDrawer({ isOpen, onClose }) {
       position: 'fixed',
       right: '20px',
       bottom: '20px',
-      width: '440px',
-      height: '620px',
+      width: '450px',
+      height: '630px',
       maxWidth: 'calc(100vw - 30px)',
       maxHeight: 'calc(100vh - 30px)',
       backgroundColor: '#0B132B',
@@ -88,7 +112,7 @@ function RAGChatDrawer({ isOpen, onClose }) {
     }}>
       {/* Drawer Header */}
       <div style={{
-        padding: '1rem 1.25rem',
+        padding: '0.85rem 1.1rem',
         background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)',
         borderBottom: '1px solid var(--border-color)',
         display: 'flex',
@@ -110,10 +134,10 @@ function RAGChatDrawer({ isOpen, onClose }) {
           </div>
           <div>
             <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#F8FAFC' }}>
-              AI Research Assistant
+              AI RAG Assistant
             </div>
             <div style={{ fontSize: '0.725rem', color: 'var(--accent-cyan-light)', fontWeight: 600 }}>
-              Hybrid RAG Vector Engine Active
+              Hybrid RAG • Vector & MySQL DB Active
             </div>
           </div>
         </div>
@@ -168,16 +192,49 @@ function RAGChatDrawer({ isOpen, onClose }) {
             }}>
               <div>{msg.text}</div>
               
-              {/* Context Sources if returned */}
+              {/* Context Sources Badges */}
               {msg.sources && msg.sources.length > 0 && (
-                <div style={{ marginTop: '0.65rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '0.725rem', color: 'var(--text-secondary)' }}>
-                  <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.25rem', color: 'var(--accent-cyan-light)' }}>
-                    <FileText size={12} /> Database Sources ({msg.sources.length}):
+                <div style={{ marginTop: '0.65rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '0.725rem' }}>
+                  <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.35rem', color: 'var(--accent-cyan-light)' }}>
+                    <FileText size={12} /> Sources ({msg.sources.length}):
                   </div>
-                  {msg.sources.slice(0, 3).map((src, sIdx) => (
-                    <div key={sIdx} style={{ opacity: 0.9, color: '#CBD5E1' }}>• [{src.type.toUpperCase()}] {src.title}</div>
-                  ))}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                    {msg.sources.map((src, sIdx) => (
+                      <span key={sIdx} style={{
+                        background: 'rgba(6, 182, 212, 0.15)',
+                        border: '1px solid rgba(6, 182, 212, 0.3)',
+                        color: 'var(--accent-cyan-light)',
+                        padding: '0.2rem 0.5rem',
+                        borderRadius: '6px',
+                        fontSize: '0.7rem'
+                      }}>
+                        [{src.type || 'DB Record'}] {src.title || src.name || 'Source Record'}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {/* Retry button on error */}
+              {msg.isError && msg.failedQuery && (
+                <button
+                  onClick={() => sendQuery(msg.failedQuery)}
+                  style={{
+                    marginTop: '0.5rem',
+                    background: 'rgba(239, 68, 68, 0.2)',
+                    border: '1px solid #EF4444',
+                    color: '#EF4444',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem'
+                  }}
+                >
+                  <RefreshCw size={12} /> Retry Query
+                </button>
               )}
             </div>
           </div>
@@ -185,17 +242,17 @@ function RAGChatDrawer({ isOpen, onClose }) {
 
         {loading && (
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', color: 'var(--accent-cyan-light)', fontSize: '0.825rem', paddingLeft: '2rem' }}>
-            <Sparkles size={14} className="glow-animation" style={{ animation: 'spin 2s linear infinite' }} /> 
-            Retrieving database passages & synthesizing response...
+            <Sparkles size={14} style={{ animation: 'spin 2s linear infinite' }} /> 
+            Retrieving RAG passages & synthesizing response...
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Quick Suggestion Chips */}
-      {messages.length <= 2 && !loading && (
+      {!loading && (
         <div style={{ padding: '0 1rem 0.5rem 1rem', display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-          {quickPrompts.map((prompt, pIdx) => (
+          {quickPrompts.slice(0, 4).map((prompt, pIdx) => (
             <button
               key={pIdx}
               onClick={() => sendQuery(prompt)}
@@ -204,8 +261,8 @@ function RAGChatDrawer({ isOpen, onClose }) {
                 border: '1px solid rgba(6, 182, 212, 0.25)',
                 color: 'var(--accent-cyan-light)',
                 borderRadius: '20px',
-                padding: '0.3rem 0.65rem',
-                fontSize: '0.75rem',
+                padding: '0.25rem 0.6rem',
+                fontSize: '0.725rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 whiteSpace: 'nowrap'
@@ -221,7 +278,7 @@ function RAGChatDrawer({ isOpen, onClose }) {
       <form onSubmit={handleSend} style={{ padding: '0.85rem 1rem', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '0.5rem', background: '#080C14' }}>
         <input 
           type="text"
-          placeholder="Ask RAG AI assistant..."
+          placeholder="Ask RAG assistant about funding, papers, patents..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="ai-input"

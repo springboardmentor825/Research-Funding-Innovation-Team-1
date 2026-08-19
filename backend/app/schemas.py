@@ -170,6 +170,20 @@ class FundingRecommendationItem(BaseModel):
     matched_signals: List[str] = []
     unmatched_signals: List[str] = []
     status: Optional[str] = "recommended"
+    
+    # Expanded detail fields
+    description: Optional[str] = None
+    research_domains: List[str] = []
+    technology_areas: List[str] = []
+    keywords: List[str] = []
+    eligibility: Optional[str] = None
+    research_stage: Optional[str] = None
+    geographic_scope: Optional[str] = None
+    funding_type: Optional[str] = None
+    match_badges: List[str] = []
+    
+    # Detailed match breakdown breakdown weights out of max available points
+    match_breakdown: Optional[dict] = None
 
 class FundingRecommendationResponse(BaseModel):
     user_id: int
@@ -182,8 +196,12 @@ class FundingFeedbackRequest(BaseModel):
     feedback: str # relevant, not_relevant, saved, applied, dismissed
 
 class RAGChatRequest(BaseModel):
-    query: str
+    query: Optional[str] = None
+    question: Optional[str] = None
     top_k: Optional[int] = 5
+
+    def get_query(self) -> str:
+        return self.query or self.question or ""
 
 class RAGChatResponse(BaseModel):
     query: str

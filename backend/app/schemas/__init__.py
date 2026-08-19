@@ -133,8 +133,86 @@ class ForgotPasswordRequest(BaseModel):
     email: str
 
 # ==========================================
+# FUNDING SCHEMAS
+# ==========================================
+class FundingOpportunityBase(BaseModel):
+    title: str
+    funder: str
+    amount_range: str
+    deadline: date
+    semantic_fit: Optional[int] = None
+    match_badges: Optional[str] = None
+    description: Optional[str] = None
+    research_domains: Optional[str] = None
+    technology_areas: Optional[str] = None
+    keywords: Optional[str] = None
+    eligibility: Optional[str] = None
+    research_stage: Optional[str] = None
+    geographic_scope: Optional[str] = None
+    funding_type: Optional[str] = None
+    status: str = "open"
+
+class FundingOpportunityCreate(FundingOpportunityBase):
+    pass
+
+class FundingOpportunitySchema(FundingOpportunityBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class FundingRecommendationItem(BaseModel):
+    funding_id: int
+    title: str
+    funder: str
+    amount_range: str
+    deadline: str
+    match_score: int
+    reason: str
+    matched_signals: List[str] = []
+    unmatched_signals: List[str] = []
+    status: Optional[str] = "recommended"
+    
+    # Expanded detail fields
+    description: Optional[str] = None
+    research_domains: List[str] = []
+    technology_areas: List[str] = []
+    keywords: List[str] = []
+    eligibility: Optional[str] = None
+    research_stage: Optional[str] = None
+    geographic_scope: Optional[str] = None
+    funding_type: Optional[str] = None
+    match_badges: List[str] = []
+    
+    # Detailed match breakdown weights out of max available points
+    match_breakdown: Optional[dict] = None
+
+class FundingRecommendationResponse(BaseModel):
+    user_id: int
+    researcher_profile: Optional[dict] = None
+    recommendations: List[FundingRecommendationItem] = []
+
+class FundingFeedbackRequest(BaseModel):
+    user_id: int
+    funding_id: int
+    feedback: str
+
+# ==========================================
 # RAG SCHEMAS
 # ==========================================
+class RAGChatRequest(BaseModel):
+    query: Optional[str] = None
+    question: Optional[str] = None
+    top_k: Optional[int] = 5
+
+    def get_query(self) -> str:
+        return self.query or self.question or ""
+
+class RAGChatResponse(BaseModel):
+    query: str
+    answer: str
+    sources: List[dict] = []
+
 class ChatRequest(BaseModel):
     question: str = Field(..., example="What is Retrieval Augmented Generation?")
 
