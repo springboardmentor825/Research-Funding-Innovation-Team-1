@@ -88,3 +88,81 @@ INSERT INTO Publications (user_id, title, authors, journal, publication_year, do
 INSERT INTO Patents (user_id, title, inventor, assignee, technology_domain, filing_date) VALUES
 (1, 'Neural Network System for DNA Sequence Alignment', 'Dr. Emily Carter', 'State Technological Research Foundation', 'Genomic Processing Systems', '2025-03-12'),
 (3, 'Decentralized Computation Routing Engine', 'Dr. Alan Turing', 'Advanced Computing Laboratories LLC', 'Distributed Network Processing', '2024-11-22');
+
+-- ---------------------------------------------------------------------------
+-- Research Intelligence Dashboard tables
+-- Global OpenAlex scholarly dataset (50K records), independent of user accounts.
+-- ---------------------------------------------------------------------------
+
+-- Research Publications (global corpus, populated from datasets/openalex_50000_clean.csv)
+CREATE TABLE IF NOT EXISTS Research_Publications (
+    research_id INT AUTO_INCREMENT PRIMARY KEY,
+    external_id VARCHAR(255) UNIQUE NOT NULL,
+    title VARCHAR(2000) NOT NULL,
+    publication_year INT NULL,
+    publication_date DATE NULL,
+    publication_type VARCHAR(100) NULL,
+    authors_raw TEXT NULL,
+    institutions_raw TEXT NULL,
+    topics_raw TEXT NULL,
+    primary_topic VARCHAR(500) NULL,
+    concepts_raw TEXT NULL,
+    cited_by_count INT NOT NULL DEFAULT 0,
+    doi VARCHAR(255) NULL,
+    source VARCHAR(500) NULL,
+    is_retracted TINYINT(1) NOT NULL DEFAULT 0,
+    open_access TINYINT(1) NOT NULL DEFAULT 0,
+    INDEX idx_rp_year (publication_year),
+    INDEX idx_rp_type (publication_type),
+    INDEX idx_rp_cited (cited_by_count),
+    INDEX idx_rp_doi (doi),
+    INDEX idx_rp_source (source)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Normalized authors per publication (enables fast top-author analytics)
+CREATE TABLE IF NOT EXISTS Research_Publication_Authors (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    research_id INT NOT NULL,
+    author_name VARCHAR(500) NOT NULL,
+    position INT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_rpa_pub FOREIGN KEY (research_id)
+        REFERENCES Research_Publications(research_id) ON DELETE CASCADE,
+    UNIQUE KEY uq_rpa (research_id, author_name),
+    INDEX idx_rpa_name (author_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Normalized institutions per publication
+CREATE TABLE IF NOT EXISTS Research_Publication_Institutions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    research_id INT NOT NULL,
+    institution_name VARCHAR(500) NOT NULL,
+    position INT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_rpi_pub FOREIGN KEY (research_id)
+        REFERENCES Research_Publications(research_id) ON DELETE CASCADE,
+    UNIQUE KEY uq_rpi (research_id, institution_name),
+    INDEX idx_rpi_name (institution_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Normalized topics per publication
+CREATE TABLE IF NOT EXISTS Research_Publication_Topics (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    research_id INT NOT NULL,
+    topic_name VARCHAR(500) NOT NULL,
+    position INT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_rpt_pub FOREIGN KEY (research_id)
+        REFERENCES Research_Publications(research_id) ON DELETE CASCADE,
+    UNIQUE KEY uq_rpt (research_id, topic_name),
+    INDEX idx_rpt_name (topic_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Normalized concepts per publication
+CREATE TABLE IF NOT EXISTS Research_Publication_Concepts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    research_id INT NOT NULL,
+    concept_name VARCHAR(500) NOT NULL,
+    position INT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_rpc_pub FOREIGN KEY (research_id)
+        REFERENCES Research_Publications(research_id) ON DELETE CASCADE,
+    UNIQUE KEY uq_rpc (research_id, concept_name),
+    INDEX idx_rpc_name (concept_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

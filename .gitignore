@@ -15,3 +15,9 @@ env/
 **/.env
 **/*.db
 **/*.sqlite3
+
+# Local dev MySQL instance
+.mysql-dev/
+
+# Runtime logs
+*.log
