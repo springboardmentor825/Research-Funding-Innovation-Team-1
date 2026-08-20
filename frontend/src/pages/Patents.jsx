@@ -96,7 +96,7 @@ function Patents() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f5f8ff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--dark-bg)' }}>
       <Navbar />
       <div style={{ padding: '0 2rem 2rem 2rem', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
         
@@ -111,20 +111,20 @@ function Patents() {
         </header>
 
         {success && (
-          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#d1fae5', color: '#065f46', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
             {success}
           </div>
         )}
 
         {error && (
-          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#fee2e2', color: '#991b1b', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
             {error}
           </div>
         )}
 
         {/* DETAILS FORMS */}
         {isEditing && (
-          <div className="glass-card" style={{ padding: '2rem', marginBottom: '2.5rem', backgroundColor: '#ffffff' }}>
+          <div className="glass-card" style={{ padding: '2rem', marginBottom: '2.5rem' }}>
             <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', color: 'var(--primary-color)' }}>
               {editingId ? 'Edit Patent Registry Details' : 'Register New Patent Record'}
             </h3>
@@ -169,16 +169,16 @@ function Patents() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Loading patents list...</div>
         ) : patents.length === 0 ? (
-          <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#ffffff' }}>
+          <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', backgroundColor: 'rgba(255,255,255,0.03)' }}>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '0' }}>You have not registered any patents yet. Enter details above.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {patents.map((patent) => (
-              <div key={patent.patent_id} className="glass-card" style={{ padding: '1.75rem', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div key={patent.patent_id} className="glass-card" style={{ padding: '1.75rem', backgroundColor: 'rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ paddingRight: '1rem' }}>
-                  <h3 style={{ fontSize: '1.2rem', color: '#1e293b', marginBottom: '0.5rem', fontWeight: 650 }}>{patent.title}</h3>
-                  <div style={{ color: '#475569', fontSize: '0.925rem', marginBottom: '0.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 2rem' }}>
+                  <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '0.5rem', fontWeight: 650 }}>{patent.title}</h3>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.925rem', marginBottom: '0.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 2rem' }}>
                     <span><strong>Inventors:</strong> {patent.inventor}</span>
                     <span><strong>Assignee:</strong> {patent.assignee}</span>
                   </div>

@@ -102,7 +102,7 @@ function Profile() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f5f8ff' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--dark-bg)' }}>
         <Navbar />
         <div style={{ display: 'flex', flexGrow: 1, justifyContent: 'center', alignItems: 'center', color: 'var(--primary-color)', fontSize: '1.25rem', fontWeight: 600 }}>
           Loading Research Profile Context...
@@ -112,7 +112,7 @@ function Profile() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f5f8ff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--dark-bg)' }}>
       <Navbar />
       <div style={{ padding: '0 2rem 2rem 2rem', maxSelfAlign: 'center', maxWidth: '800px', width: '100%', margin: '0 auto' }}>
         
@@ -122,26 +122,26 @@ function Profile() {
         </header>
 
         {success && (
-          <div style={{ padding: '0.75rem 1rem', mdBorderRadius: '8px', borderRadius: '8px', backgroundColor: '#d1fae5', color: '#065f46', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+          <div style={{ padding: '0.75rem 1rem', mdBorderRadius: '8px', borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
             {success}
           </div>
         )}
 
         {error && (
-          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#fee2e2', color: '#991b1b', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
             {error}
           </div>
         )}
 
         {/* PROFILE STATE MANAGER */}
         {!profile && !isEditing ? (
-          <div className="glass-card" style={{ padding: '2.5rem', textAlign: 'center', backgroundColor: '#ffffff' }}>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#1e293b' }}>Setup Your Academic Profile</h3>
+          <div className="glass-card" style={{ padding: '2.5rem', textAlign: 'center' }}>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Setup Your Academic Profile</h3>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>You have not initialized your research profile metadata yet. Setup your primary organization, domain details, research domains, and bios to hook research funding filters.</p>
             <button className="btn-primary" onClick={() => setIsEditing(true)}>Create Profile Now</button>
           </div>
         ) : isEditing || !profile ? (
-          <div className="glass-card" style={{ padding: '2rem', backgroundColor: '#ffffff' }}>
+          <div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
             <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', color: 'var(--primary-color)' }}>
               {profile ? 'Edit Profile Details' : 'Configure Profile Details'}
             </h3>
@@ -197,10 +197,10 @@ function Profile() {
             </form>
           </div>
         ) : (
-          <div className="glass-card" style={{ padding: '2.5rem', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #e2e8f0', paddingBottom: '1.25rem' }}>
+          <div className="glass-card" style={{ padding: '2.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.25rem' }}>
               <div>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 650, color: '#1e293b', margin: 0 }}>{profile.designation}</h3>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 650, color: 'var(--text-primary)', margin: 0 }}>{profile.designation}</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginTop: '0.2rem' }}>{profile.organization}</p>
               </div>
               <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -239,9 +239,9 @@ function Profile() {
             )}
 
             {profile.bio && (
-              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1.25rem' }}>
+              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
                 <h4 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.5rem', fontWeight: 600 }}>About Researcher</h4>
-                <p style={{ color: '#334155', whiteSpace: 'pre-line', lineHeight: '1.6' }}>{profile.bio}</p>
+                <p style={{ color: 'var(--text-secondary)', whiteSpace: 'pre-line', lineHeight: '1.6' }}>{profile.bio}</p>
               </div>
             )}
 

@@ -96,7 +96,7 @@ function Publications() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f5f8ff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--dark-bg)' }}>
       <Navbar />
       <div style={{ padding: '0 2rem 2rem 2rem', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
         
@@ -111,20 +111,20 @@ function Publications() {
         </header>
 
         {success && (
-          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#d1fae5', color: '#065f46', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
             {success}
           </div>
         )}
 
         {error && (
-          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#fee2e2', color: '#991b1b', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+          <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
             {error}
           </div>
         )}
 
         {/* FORMS */}
         {isEditing && (
-          <div className="glass-card" style={{ padding: '2rem', marginBottom: '2.5rem', backgroundColor: '#ffffff' }}>
+          <div className="glass-card" style={{ padding: '2rem', marginBottom: '2.5rem' }}>
             <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', color: 'var(--primary-color)' }}>
               {editingId ? 'Edit Publication Records' : 'Register New Publication Study'}
             </h3>
@@ -166,16 +166,16 @@ function Publications() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Loading publication registries...</div>
         ) : publications.length === 0 ? (
-          <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#ffffff' }}>
+          <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', backgroundColor: 'rgba(255,255,255,0.03)' }}>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '0' }}>You have not recorded any publications yet. Enter details above.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {publications.map((pub) => (
-              <div key={pub.publication_id} className="glass-card" style={{ padding: '1.75rem', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div key={pub.publication_id} className="glass-card" style={{ padding: '1.75rem', backgroundColor: 'rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ paddingRight: '1rem' }}>
-                  <h3 style={{ fontSize: '1.2rem', color: '#1e293b', marginBottom: '0.5rem', fontWeight: 650 }}>{pub.title}</h3>
-                  <p style={{ color: '#475569', fontSize: '0.925rem', marginBottom: '0.5rem' }}>
+                  <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '0.5rem', fontWeight: 650 }}>{pub.title}</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.925rem', marginBottom: '0.5rem' }}>
                     <strong>Authors:</strong> {pub.authors}
                   </p>
                   <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>

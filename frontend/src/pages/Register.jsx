@@ -32,18 +32,18 @@ function Register() {
 
   return (
     <div style={{ display: 'flex', flexGrow: 1, justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '1rem' }}>
-      <div className="glass-card" style={{ padding: '2.5rem', width: '100%', maxWidth: '420px', backgroundColor: '#ffffff' }}>
+      <div className="glass-card" style={{ padding: '2.5rem', width: '100%', maxWidth: '420px' }}>
         <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--primary-color)' }}>Create Account</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Join the funding & innovation network.</p>
         
         {error && (
-          <div style={{ padding: '0.75rem', borderRadius: '6px', backgroundColor: '#fee2e2', color: '#991b1b', fontSize: '0.875rem', marginBottom: '1rem', fontWeight: 500 }}>
+          <div style={{ padding: '0.75rem', borderRadius: '6px', backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', fontSize: '0.875rem', marginBottom: '1rem', fontWeight: 500 }}>
             {error}
           </div>
         )}
 
         {success && (
-          <div style={{ padding: '0.75rem', borderRadius: '6px', backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.875rem', marginBottom: '1rem', fontWeight: 500 }}>
+          <div style={{ padding: '0.75rem', borderRadius: '6px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', fontSize: '0.875rem', marginBottom: '1rem', fontWeight: 500 }}>
             {success}
           </div>
         )}
