@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text, TIMESTAMP
-from app.database import Base
+from ..database import Base
 class ResearchProfile(Base):
     __tablename__ = "research_profiles"
     id = Column(Integer, primary_key=True, index=True)

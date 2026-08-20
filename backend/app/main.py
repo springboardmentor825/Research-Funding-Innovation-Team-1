@@ -4,6 +4,7 @@ AI-powered Research Funding Innovation Intelligence Platform
 """
 
 from fastapi import FastAPI, Depends, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -30,6 +31,20 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     description="API for Research Funding Innovation Intelligence Platform",
     version="0.1.0",
+)
+
+# CORS — allow the Vite dev server and any localhost origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Register routers
@@ -91,6 +106,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",
         host="127.0.0.1",
-        port=8000,
+        port=8001,
         reload=True,
     )
