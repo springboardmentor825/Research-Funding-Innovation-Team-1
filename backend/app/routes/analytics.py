@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.auth import get_current_user
 from app.database import get_db
 from app.models import (
     ResearchPublication as Publication,
@@ -13,7 +14,7 @@ from app.models import (
     ResearchPublicationConcept as Concept,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
 def _scalar(db: Session, stmt):
@@ -57,9 +58,13 @@ def publication_trends(
     to_year: Optional[int] = Query(None, alias="to"),
     db: Session = Depends(get_db),
 ):
-    """Yearly publication counts, optionally filtered to a year window."""
+    """Yearly publication counts and total citations, optionally filtered to a year window."""
     stmt = (
-        select(Publication.publication_year, func.count().label("count"))
+        select(
+            Publication.publication_year,
+            func.count().label("count"),
+            func.coalesce(func.sum(Publication.cited_by_count), 0).label("citations"),
+        )
         .where(Publication.publication_year.is_not(None))
         .group_by(Publication.publication_year)
         .order_by(Publication.publication_year)
@@ -69,7 +74,10 @@ def publication_trends(
     if to_year is not None:
         stmt = stmt.where(Publication.publication_year <= to_year)
     rows = db.execute(stmt).all()
-    return [{"year": year, "count": count} for year, count in rows]
+    return [
+        {"year": year, "count": count, "citations": int(citations)}
+        for year, count, citations in rows
+    ]
 
 
 @router.get("/publication-types")

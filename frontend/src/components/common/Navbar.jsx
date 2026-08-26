@@ -17,7 +17,7 @@ function Navbar() {
   return (
     <nav className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', borderRadius: '0 0 12px 12px', borderTop: 'none', margin: '0 1rem 2rem 1rem' }}>
       <div style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--primary-color)' }}>
-        RF&II Platform
+        Infera
       </div>
       <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
         <Link to="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>Dashboard</Link>

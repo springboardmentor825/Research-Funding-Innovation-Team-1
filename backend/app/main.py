@@ -11,7 +11,7 @@ load_dotenv()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Research Funding & Innovation Intelligence Platform API",
+    title="Infera API",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -44,6 +44,6 @@ app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytic
 def read_root():
     return {
         "status": "online",
-        "service": "Research Funding & Innovation Intelligence Platform Backend",
+        "service": "Infera Backend",
         "docs": "/docs"
     }
