@@ -1,0 +1,49 @@
+=== USER 16 PUBLICATIONS ===
+Pub 25: 'AI Driven Research Discovery' | Journal: 'IEEE Access' | Year: 2024
+Pub 26: 'Semantic Funding Search' | Journal: 'Springer AI' | Year: 2024
+Pub 27: 'Patent Intelligence Systems' | Journal: 'Elsevier Research' | Year: 2023
+Pub 28: 'Research Analytics Platform' | Journal: 'IEEE Access' | Year: 2024
+Pub 29: 'Knowledge Graphs in Research' | Journal: 'ACM' | Year: 2023
+Pub 30: 'LLM Powered Innovation Discovery' | Journal: 'Nature AI' | Year: 2024
+Pub 31: 'Deep Learning for Funding Match' | Journal: 'Springer' | Year: 2024
+Pub 32: 'Patent Similarity Analysis' | Journal: 'IEEE' | Year: 2023
+Pub 33: 'Research Collaboration Models' | Journal: 'ACM' | Year: 2022
+Pub 34: 'RAG Based Research Assistant' | Journal: 'IEEE' | Year: 2024
+
+=== USER 16 PATENTS ===
+Patent 14: 'AI Funding Recommendation Engine' | Tech Domain: 'Artificial Intelligence'
+Patent 15: 'Patent Similarity Detection System' | Tech Domain: 'Patent Analytics'
+Patent 16: 'Semantic Research Search Engine' | Tech Domain: 'Information Retrieval'
+Patent 17: 'Research Intelligence Dashboard' | Tech Domain: 'Analytics'
+Patent 18: 'Collaboration Recommendation System' | Tech Domain: 'Machine Learning'
+Patent 19: 'Innovation Opportunity Predictor' | Tech Domain: 'AI'
+Patent 20: 'Automated Patent Classification' | Tech Domain: 'Patent Analytics'
+Patent 21: 'Research Trend Forecasting Engine' | Tech Domain: 'Forecasting'
+Patent 22: 'Knowledge Graph Research Assistant' | Tech Domain: 'Knowledge Graphs'
+Patent 23: 'Multi-Agent Research Advisor' | Tech Domain: 'AI Agents'
+
+=== ALL FUNDING OPPORTUNITIES ===
+ID 1: 'Quantum Computing & Information Science Grant Initiative' | Funder: 'National Science Foundation (NSF)' | Amount: '$150,000 - $500,000' | Deadline: 2026-12-01 | Fit: 96 | Badges: 'Topic match,Methodology match,PI overlap'
+ID 2: 'Decarbonization Technologies & Clean Energy Innovation' | Funder: 'U.S. Department of Energy (DOE)' | Amount: '$500,000 - $1,200,000' | Deadline: 2026-10-15 | Fit: 88 | Badges: 'Methodology match,Equipment overlap'
+ID 3: 'AI in Translational Medicine & Deep Pathology Diagnostics' | Funder: 'National Institutes of Health (NIH)' | Amount: '$250,000 - $600,000' | Deadline: 2026-11-30 | Fit: 94 | Badges: 'Topic match,Co-author match'
+ID 4: 'Advanced Materials Research & Nanotechnology Grants' | Funder: 'Defense Advanced Research Projects Agency (DARPA)' | Amount: '$300,000 - $800,000' | Deadline: 2026-09-20 | Fit: 75 | Badges: 'Topic match'
+ID 5: 'AI Research Grant 2026' | Funder: 'NSF' | Amount: '$50K-$100K' | Deadline: 2026-12-31 | Fit: 95 | Badges: 'AI,ML'
+ID 6: 'Healthcare Innovation Fund' | Funder: 'WHO' | Amount: '$100K-$500K' | Deadline: 2026-11-30 | Fit: 88 | Badges: 'Healthcare'
+ID 7: 'Smart Agriculture Program' | Funder: 'FAO' | Amount: '$25K-$75K' | Deadline: 2026-10-15 | Fit: 82 | Badges: 'Agriculture'
+ID 8: 'Cybersecurity Research Grant' | Funder: 'NIST' | Amount: '$75K-$150K' | Deadline: 2026-09-20 | Fit: 91 | Badges: 'Cybersecurity'
+ID 9: 'Robotics Innovation Award' | Funder: 'IEEE' | Amount: '$50K-$200K' | Deadline: 2026-08-31 | Fit: 89 | Badges: 'Robotics'
+ID 10: 'Quantum Computing Grant' | Funder: 'IBM' | Amount: '$100K-$500K' | Deadline: 2026-07-30 | Fit: 94 | Badges: 'Quantum'
+ID 11: 'Data Science Fellowship' | Funder: 'Google' | Amount: '$20K-$50K' | Deadline: 2026-06-15 | Fit: 85 | Badges: 'Data Science'
+ID 12: 'NLP Research Program' | Funder: 'Microsoft' | Amount: '$50K-$100K' | Deadline: 2026-05-31 | Fit: 96 | Badges: 'NLP'
+ID 13: 'Green Energy Innovation' | Funder: 'UNDP' | Amount: '$100K-$300K' | Deadline: 2026-09-01 | Fit: 80 | Badges: 'Energy'
+ID 14: 'Climate Analytics Fund' | Funder: 'NASA' | Amount: '$150K-$500K' | Deadline: 2026-12-01 | Fit: 90 | Badges: 'Climate'
+ID 15: 'Patent Commercialization Grant' | Funder: 'WIPO' | Amount: '$50K-$250K' | Deadline: 2026-10-10 | Fit: 87 | Badges: 'Patents'
+ID 16: 'Innovation Accelerator' | Funder: 'Infosys' | Amount: '$25K-$100K' | Deadline: 2026-11-11 | Fit: 84 | Badges: 'Innovation'
+ID 17: 'Startup Research Support' | Funder: 'Startup India' | Amount: '$10K-$50K' | Deadline: 2026-09-09 | Fit: 79 | Badges: 'Startup'
+ID 18: 'Smart Cities Program' | Funder: 'World Bank' | Amount: '$100K-$400K' | Deadline: 2026-08-08 | Fit: 83 | Badges: 'Urban Tech'
+ID 19: 'Bioinformatics Grant' | Funder: 'NIH' | Amount: '$50K-$200K' | Deadline: 2026-07-07 | Fit: 92 | Badges: 'Bioinformatics'
+ID 20: 'Space Technology Fund' | Funder: 'ISRO' | Amount: '$100K-$500K' | Deadline: 2026-06-06 | Fit: 88 | Badges: 'Space'
+ID 21: 'Education Technology Grant' | Funder: 'UNESCO' | Amount: '$25K-$150K' | Deadline: 2026-05-05 | Fit: 81 | Badges: 'EdTech'
+ID 22: 'AI for Social Good' | Funder: 'Google.org' | Amount: '$50K-$250K' | Deadline: 2026-04-04 | Fit: 93 | Badges: 'AI'
+ID 23: 'Research Excellence Award' | Funder: 'DST' | Amount: '$30K-$100K' | Deadline: 2026-03-03 | Fit: 86 | Badges: 'Research'
+ID 24: 'Advanced Computing Grant' | Funder: 'Intel' | Amount: '$75K-$300K' | Deadline: 2026-02-02 | Fit: 89 | Badges: 'Computing'

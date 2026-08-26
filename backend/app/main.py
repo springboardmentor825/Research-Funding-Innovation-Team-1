@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routes import auth, users, publications, patents, analytics
+from app.routes import auth, users, publications, patents, analytics, funding, rag
 import os
 from dotenv import load_dotenv
 
@@ -39,6 +39,14 @@ app.include_router(users.router, prefix="/api/v1/users", tags=["Users & Profiles
 app.include_router(publications.router, prefix="/api/v1/publications", tags=["Publications"])
 app.include_router(patents.router, prefix="/api/v1/patents", tags=["Patents"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics"])
+
+# Funding & Recommendation routes
+app.include_router(funding.router, prefix="/api/funding", tags=["Funding & Recommendations"])
+app.include_router(funding.router, prefix="/api/v1/funding", tags=["Funding & Recommendations"])
+
+# Hybrid RAG routes
+app.include_router(rag.router, prefix="/api/rag", tags=["Hybrid RAG"])
+app.include_router(rag.router, prefix="/api/v1/rag", tags=["Hybrid RAG"])
 
 @app.get("/")
 def read_root():
