@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import Optional, List, Any
 from pydantic import BaseModel, EmailStr
+from app.schemas.researcher import ResearcherProfileSummary
 
 # ==========================================
 # RESEARCH PROFILE SCHEMAS
@@ -133,31 +134,16 @@ class ForgotPasswordRequest(BaseModel):
 # ==========================================
 # FUNDING SCHEMAS
 # ==========================================
-class FundingOpportunityBase(BaseModel):
-    title: str
-    funder: str
-    amount_range: str
-    deadline: date
-    semantic_fit: Optional[int] = None
-    match_badges: Optional[str] = None
-    description: Optional[str] = None
-    research_domains: Optional[str] = None
-    technology_areas: Optional[str] = None
-    keywords: Optional[str] = None
-    eligibility: Optional[str] = None
-    research_stage: Optional[str] = None
-    geographic_scope: Optional[str] = None
-    funding_type: Optional[str] = None
-    status: str = "open"
-
-class FundingOpportunityCreate(FundingOpportunityBase):
-    pass
-
-class FundingOpportunitySchema(FundingOpportunityBase):
-    id: int
-
-    class Config:
-        from_attributes = True
+from app.schemas.funding import (
+    FundingOpportunityBase,
+    FundingOpportunityCreate,
+    FundingOpportunityUpdate,
+    FundingOpportunitySchema,
+    FundingOpportunityNormalized,
+    ALLOWED_STATUSES,
+    ALLOWED_RESEARCH_STAGES,
+    ALLOWED_FUNDING_TYPES
+)
 
 class FundingRecommendationItem(BaseModel):
     funding_id: int
@@ -166,11 +152,18 @@ class FundingRecommendationItem(BaseModel):
     amount_range: str
     deadline: str
     match_score: int
+    match_level: Optional[str] = "MEDIUM"  # HIGH (>=75), MEDIUM (50-74), LOW (<50)
     reason: str
     matched_signals: List[str] = []
     unmatched_signals: List[str] = []
     status: Optional[str] = "recommended"
     
+    # Evidence detail fields
+    publication_match_count: int = 0
+    patent_match_count: int = 0
+    matched_publications: List[dict] = []
+    matched_patents: List[dict] = []
+
     # Expanded detail fields
     description: Optional[str] = None
     research_domains: List[str] = []

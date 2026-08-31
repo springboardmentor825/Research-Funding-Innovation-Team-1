@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, ResearchProfile
 from app.schemas import User as UserSchema, ResearchProfileCreate, ResearchProfileUpdate, ResearchProfile as ProfileSchema
+from app.schemas.researcher import ResearcherProfileSummary
 from app.auth import get_current_user
 
 router = APIRouter()
@@ -78,4 +79,17 @@ def delete_my_profile(
     db.delete(profile)
     db.commit()
     return
+
+@router.get("/{user_id}/features", response_model=ResearcherProfileSummary)
+def get_user_features(user_id: int, db: Session = Depends(get_db)):
+    """Retrieve normalized researcher features for a given user_id."""
+    from app.services import researcher_feature_service
+    features = researcher_feature_service.build_researcher_features(db, user_id)
+    if features is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID {user_id} does not exist."
+        )
+    return features
+
 

@@ -1,0 +1,201 @@
+=== MYSQL TABLE COLUMNS ===
+Column: id                   Type: INTEGER              Nullable: False Default: None
+Column: title                Type: VARCHAR(255)         Nullable: False Default: None
+Column: funder               Type: VARCHAR(255)         Nullable: False Default: None
+Column: amount_range         Type: VARCHAR(100)         Nullable: False Default: None
+Column: deadline             Type: DATE                 Nullable: False Default: None
+Column: semantic_fit         Type: INTEGER              Nullable: True Default: None
+Column: match_badges         Type: VARCHAR(255)         Nullable: True Default: None
+Column: description          Type: TEXT                 Nullable: True Default: None
+Column: research_domains     Type: VARCHAR(500)         Nullable: True Default: None
+Column: technology_areas     Type: VARCHAR(500)         Nullable: True Default: None
+Column: keywords             Type: VARCHAR(500)         Nullable: True Default: None
+Column: eligibility          Type: VARCHAR(500)         Nullable: True Default: None
+Column: research_stage       Type: VARCHAR(100)         Nullable: True Default: None
+Column: geographic_scope     Type: VARCHAR(100)         Nullable: True Default: None
+Column: funding_type         Type: VARCHAR(100)         Nullable: True Default: None
+Column: status               Type: VARCHAR(50)          Nullable: False Default: 'open'
+
+Total rows in funding_opportunities: 25
+
+=== SAMPLE ROWS (10) ===
+
+Row 1:
+  id: 1
+  title: Quantum Computing & Information Science Grant Initiative
+  funder: National Science Foundation (NSF)
+  amount_range: $150,000 - $500,000
+  deadline: 2026-12-01
+  semantic_fit: 96
+  match_badges: Topic match,Methodology match,PI overlap
+  description: Funding for pioneering quantum algorithms, physical qubit scalability, and quantum fault tolerance.
+  research_domains: Quantum Computing, Computation Theory
+  technology_areas: Quantum Information Science, Superconducting Qubits
+  keywords: Quantum Computing, Qubits, Quantum Algorithms, Entanglement
+  eligibility: Ph.D. degree required, Academic or Industry Research Labs
+  research_stage: Basic Research
+  geographic_scope: Global
+  funding_type: Grant
+  status: open
+
+Row 2:
+  id: 2
+  title: Decarbonization Technologies & Clean Energy Innovation
+  funder: U.S. Department of Energy (DOE)
+  amount_range: $500,000 - $1,200,000
+  deadline: 2026-10-15
+  semantic_fit: 88
+  match_badges: Methodology match,Equipment overlap
+  description: Research initiative focused on industrial decarbonization, renewable grid integration, and zero-emission tech.
+  research_domains: Energy & Sustainability, Environmental Science
+  technology_areas: Decarbonization, Clean Energy, Carbon Capture
+  keywords: Decarbonization, Clean Energy, Solar, Wind, Carbon Storage
+  eligibility: University, National Lab, or Non-profit Organization
+  research_stage: Applied Research
+  geographic_scope: North America
+  funding_type: Grant
+  status: open
+
+Row 3:
+  id: 3
+  title: AI in Translational Medicine & Deep Pathology Diagnostics
+  funder: National Institutes of Health (NIH)
+  amount_range: $250,000 - $600,000
+  deadline: 2026-11-30
+  semantic_fit: 94
+  match_badges: Topic match,Co-author match
+  description: Grant focusing on applying deep learning architectures to clinical genomics, pathology images, and disease prediction.
+  research_domains: Bioinformatics & Machine Learning, Medicine
+  technology_areas: Artificial Intelligence, Deep Learning, Pathology Diagnostics
+  keywords: AI, Deep Learning, Medical Diagnostics, Pathology, Bioinformatics
+  eligibility: Tenure-track or Clinical Faculty
+  research_stage: Translational Research
+  geographic_scope: Global
+  funding_type: Grant
+  status: open
+
+Row 4:
+  id: 4
+  title: Advanced Materials Research & Nanotechnology Grants
+  funder: Defense Advanced Research Projects Agency (DARPA)
+  amount_range: $300,000 - $800,000
+  deadline: 2026-09-20
+  semantic_fit: 75
+  match_badges: Topic match
+  description: DARPA program for novel synthetic materials, high-temperature superconductors, and nanostructures.
+  research_domains: Materials Science, Nanotechnology
+  technology_areas: Advanced Nanomaterials, Metamaterials
+  keywords: Nanotechnology, Materials Science, Metamaterials, Nanofabrication
+  eligibility: US Citizens or Permanent Residents
+  research_stage: Applied Research
+  geographic_scope: USA Only
+  funding_type: Contract
+  status: open
+
+Row 5:
+  id: 5
+  title: AI Research Grant 2026
+  funder: NSF
+  amount_range: $50K-$100K
+  deadline: 2026-12-31
+  semantic_fit: 95
+  match_badges: AI,ML
+  description: NSF flagship grant program supporting foundational advances in generative AI, Retrieval Augmented Generation (RAG), and Large Language Models (LLM).
+  research_domains: Artificial Intelligence, Data Science
+  technology_areas: Retrieval Augmented Generation, Large Language Models, Natural Language Processing
+  keywords: AI, Machine Learning, RAG, LLM, Natural Language Processing, Deep Learning
+  eligibility: Ph.D., Postdoctoral Researchers, Faculty Investigators
+  research_stage: Basic & Applied Research
+  geographic_scope: Global
+  funding_type: Grant
+  status: open
+
+Row 6:
+  id: 6
+  title: Healthcare Innovation Fund
+  funder: WHO
+  amount_range: $100K-$500K
+  deadline: 2026-11-30
+  semantic_fit: 88
+  match_badges: Healthcare
+  description: Global WHO innovation fund for scalable digital healthcare interventions and health monitoring systems.
+  research_domains: Healthcare, Biomedical Engineering
+  technology_areas: Digital Health, Telemedicine, Health Informatics
+  keywords: Healthcare, Health Informatics, Digital Health, Biomedical Systems
+  eligibility: Healthcare Institutions & Research Foundations
+  research_stage: Development
+  geographic_scope: Global
+  funding_type: Grant
+  status: open
+
+Row 7:
+  id: 7
+  title: Smart Agriculture Program
+  funder: FAO
+  amount_range: $25K-$75K
+  deadline: 2026-10-15
+  semantic_fit: 82
+  match_badges: Agriculture
+  description: FAO smart agriculture grant aimed at climate-resilient farming, precision sensor networks, and soil quality analysis.
+  research_domains: Agriculture, Environmental Science
+  technology_areas: Precision Agriculture, Smart Sensing, Soil Analytics
+  keywords: Agriculture, Precision Farming, Crop Yield, Soil Monitoring, AgTech
+  eligibility: Agricultural Researchers & Institutes
+  research_stage: Applied Research
+  geographic_scope: Global
+  funding_type: Grant
+  status: open
+
+Row 8:
+  id: 8
+  title: Cybersecurity Research Grant
+  funder: NIST
+  amount_range: $75K-$150K
+  deadline: 2026-09-20
+  semantic_fit: 91
+  match_badges: Cybersecurity
+  description: NIST research grant for resilient network security, automated vulnerability analysis, and zero-trust protocol designs.
+  research_domains: Cybersecurity, Computer Networks
+  technology_areas: Network Cryptography, Zero Trust Systems, Threat Detection
+  keywords: Cybersecurity, Cryptography, Zero Trust, Network Security, Encryption
+  eligibility: Cybersecurity Researchers
+  research_stage: Applied Research
+  geographic_scope: Global
+  funding_type: Grant
+  status: open
+
+Row 9:
+  id: 9
+  title: Robotics Innovation Award
+  funder: IEEE
+  amount_range: $50K-$200K
+  deadline: 2026-08-31
+  semantic_fit: 89
+  match_badges: Robotics
+  description: IEEE Robotics and Automation grant for next-generation surgical and field robotics.
+  research_domains: Robotics, Control Systems
+  technology_areas: Autonomous Mobile Robotics, Haptics, Computer Vision
+  keywords: Robotics, Autonomous Systems, Mechatronics, Kinematics, SLAM
+  eligibility: IEEE Members & Robotics Researchers
+  research_stage: Prototyping
+  geographic_scope: Global
+  funding_type: Award
+  status: open
+
+Row 10:
+  id: 10
+  title: Quantum Computing Grant
+  funder: IBM
+  amount_range: $100K-$500K
+  deadline: 2026-07-30
+  semantic_fit: 94
+  match_badges: Quantum
+  description: IBM quantum research initiative for error mitigation and quantum algorithms.
+  research_domains: Quantum Computing
+  technology_areas: Qubit Control, Quantum Error Correction
+  keywords: Quantum, Qubit, Superconducting Qubits, Quantum Software
+  eligibility: Quantum Researchers
+  research_stage: Basic Research
+  geographic_scope: Global
+  funding_type: Grant
+  status: open

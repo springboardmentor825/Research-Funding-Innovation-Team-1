@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routes import auth, users, publications, patents, funding, rag
+from app.routes import auth, users, publications, patents, funding, rag, researcher
 import os
 from dotenv import load_dotenv
 
@@ -35,9 +35,14 @@ app.add_middleware(
 
 # Connect Route handlers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(users.router, prefix="/api/users", tags=["Users & Profiles"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users & Profiles"])
 app.include_router(publications.router, prefix="/api/v1/publications", tags=["Publications"])
 app.include_router(patents.router, prefix="/api/v1/patents", tags=["Patents"])
+
+# Researcher Feature Extraction routes
+app.include_router(researcher.router, prefix="/api/researcher", tags=["Researcher Features"])
+app.include_router(researcher.router, prefix="/api/v1/researcher", tags=["Researcher Features"])
 
 # Funding & Recommendation routes (mounted on both /api/funding and /api/v1/funding for maximum compatibility)
 app.include_router(funding.router, prefix="/api/funding", tags=["Funding & Recommendations"])

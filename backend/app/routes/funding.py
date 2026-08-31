@@ -9,10 +9,13 @@ from app.models import FundingOpportunity, FundingRecommendation, User
 from app.schemas import (
     FundingOpportunitySchema,
     FundingOpportunityCreate,
+    FundingOpportunityNormalized,
     FundingRecommendationItem,
     FundingRecommendationResponse,
-    FundingFeedbackRequest
+    FundingFeedbackRequest,
+    EligibilityFilterResponse
 )
+
 from app.services.funding_matching_service import rank_funding_opportunities, calculate_match_score
 from app.services.researcher_feature_service import build_researcher_features
 from app.services.funding_feature_service import extract_funding_features
@@ -211,6 +214,66 @@ def search_funding_opportunities(
         print("ERROR IN SEARCH_FUNDING_OPPORTUNITIES:", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(exc))
 
+@router.get("/opportunities", response_model=List[FundingOpportunityNormalized])
+def get_all_normalized_opportunities(
+    active_only: bool = Query(True, description="Filter active opportunities only"),
+    db: Session = Depends(get_db)
+):
+    """Retrieve all funding opportunities in normalized format for recommendation engine preparation."""
+    from app.services import funding_data_service
+    if active_only:
+        opps = funding_data_service.get_active_funding_opportunities(db)
+    else:
+        opps = funding_data_service.get_all_funding_opportunities(db)
+    return [funding_data_service.normalize_funding_record(opp) for opp in opps]
+
+@router.get("/opportunities/domain/{domain_name}", response_model=List[FundingOpportunityNormalized])
+def get_opportunities_by_domain(domain_name: str, db: Session = Depends(get_db)):
+    """Retrieve normalized funding opportunities filtered by research domain."""
+    from app.services import funding_data_service
+    opps = funding_data_service.get_funding_by_domain(db, domain_name)
+    return [funding_data_service.normalize_funding_record(opp) for opp in opps]
+
+@router.get("/opportunities/{funding_id}", response_model=FundingOpportunityNormalized)
+def get_normalized_opportunity_by_id(funding_id: int, db: Session = Depends(get_db)):
+    """Retrieve a single normalized funding opportunity record by ID."""
+    from app.services import funding_data_service
+    opp = funding_data_service.get_funding_by_id(db, funding_id)
+    if not opp:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Funding opportunity with ID {funding_id} not found."
+        )
+    return funding_data_service.normalize_funding_record(opp)
+
+@router.get("/duplicates")
+def check_duplicate_opportunities(db: Session = Depends(get_db)):
+    """Detect potential duplicate funding opportunities based on title, funder, and deadline."""
+    from app.services import funding_data_service
+    duplicates = funding_data_service.detect_duplicate_funding(db)
+    return {
+        "status": "success",
+        "duplicate_count": len(duplicates),
+        "duplicates": duplicates
+    }
+
+@router.get("/eligibility/{user_id}", response_model=EligibilityFilterResponse)
+def get_funding_eligibility_for_user(user_id: int, db: Session = Depends(get_db)):
+
+    """
+    Evaluate all funding opportunities against eligibility criteria for the given user_id.
+    Filters out expired, closed, or explicitly restricted opportunities before matching.
+    """
+    from app.services import funding_eligibility_service
+    res = funding_eligibility_service.filter_eligible_funding(db, user_id)
+    if "error" in res:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=res["message"]
+        )
+    return res
+
+
 # ============================================================
 # STANDARD CRUD ENDPOINTS (For backward compatibility)
 # ============================================================
@@ -220,8 +283,10 @@ def list_funding(
     user_id: Optional[int] = Query(16, description="User ID for personalized match score calculation"),
     db: Session = Depends(get_db)
 ):
-    """Retrieve all open funding opportunities with personalized match scores."""
-    opps = db.query(FundingOpportunity).filter(FundingOpportunity.status == "open").all()
+    """Retrieve all open/active funding opportunities with personalized match scores."""
+    opps = db.query(FundingOpportunity).filter(
+        or_(FundingOpportunity.status == "active", FundingOpportunity.status == "open")
+    ).all()
     target_user_id = user_id or 16
     researcher_features = build_researcher_features(db, target_user_id)
 
@@ -249,3 +314,4 @@ def create_funding(
     db.commit()
     db.refresh(opp)
     return opp
+

@@ -35,6 +35,9 @@ class ResearchProfile(ResearchProfileBase):
     class Config:
         from_attributes = True
 
+from app.schemas.researcher import ResearcherProfileSummary
+
+
 # ==========================================
 # PUBLICATION SCHEMAS
 # ==========================================
@@ -135,31 +138,19 @@ class ForgotPasswordRequest(BaseModel):
 # ==========================================
 # FUNDING SCHEMAS
 # ==========================================
-class FundingOpportunityBase(BaseModel):
-    title: str
-    funder: str
-    amount_range: str
-    deadline: date
-    semantic_fit: Optional[int] = None
-    match_badges: Optional[str] = None
-    description: Optional[str] = None
-    research_domains: Optional[str] = None
-    technology_areas: Optional[str] = None
-    keywords: Optional[str] = None
-    eligibility: Optional[str] = None
-    research_stage: Optional[str] = None
-    geographic_scope: Optional[str] = None
-    funding_type: Optional[str] = None
-    status: str = "open"
+from app.schemas.funding import (
+    FundingOpportunityBase,
+    FundingOpportunityCreate,
+    FundingOpportunityUpdate,
+    FundingOpportunitySchema,
+    FundingOpportunityNormalized,
+    EligibilityItemResult,
+    EligibilityFilterResponse,
+    ALLOWED_STATUSES,
+    ALLOWED_RESEARCH_STAGES,
+    ALLOWED_FUNDING_TYPES
+)
 
-class FundingOpportunityCreate(FundingOpportunityBase):
-    pass
-
-class FundingOpportunitySchema(FundingOpportunityBase):
-    id: int
-
-    class Config:
-        from_attributes = True
 
 class FundingRecommendationItem(BaseModel):
     funding_id: int
