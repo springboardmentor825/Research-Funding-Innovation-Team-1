@@ -451,13 +451,16 @@ def generate_match_reason(
             f"while researcher specializes in {res_domain} and {res_tech}. Mismatch reason: {unmatched_summary}."
         )
 
+from app.services import funding_personalization_service
+
 def calculate_match_score(
     researcher: Dict[str, Any],
     opportunity: Dict[str, Any],
-    user_feedback: Optional[str] = None
+    user_feedback: Optional[str] = None,
+    signals: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
-    Combine rule-based matching and semantic matching into final_score with EXACT mathematical reconciliation:
+    Combine rule-based matching, semantic matching, and bounded behavioral personalization into final_score with EXACT mathematical reconciliation:
     sum(match_breakdown.values()) == final_score.
     """
     rule_score, matched_signals, unmatched_signals, breakdown, pub_count, matched_pubs, pat_count, matched_pats = compute_rule_based_score(researcher, opportunity)
@@ -467,23 +470,18 @@ def calculate_match_score(
     sem_pt = round(raw_semantic * DEFAULT_SCORING_WEIGHTS.get("semantic", 15.0) / 100.0, 1)
     breakdown["semantic"] = sem_pt
 
-    # User Feedback Adjustment (-15 to +8)
-    feedback_pt = 0.0
-    if user_feedback in ["saved", "relevant"]:
-        feedback_pt = 5.0
-        matched_signals.append("User Feedback: Saved preference boost (+5)")
-    elif user_feedback == "applied":
-        feedback_pt = 8.0
-        matched_signals.append("User Feedback: Applied interest boost (+8)")
-    elif user_feedback in ["dismissed", "not_relevant"]:
-        feedback_pt = -15.0
-        unmatched_signals.append("User Feedback: Dismissed penalty (-15)")
+    # Bounded Personalization Adjustment (-15.0 to +10.0 max)
+    composite_score, breakdown, p_matched, p_unmatched = funding_personalization_service.apply_personalization(
+        rule_score + sem_pt,
+        breakdown,
+        researcher,
+        opportunity,
+        user_feedback=user_feedback,
+        signals=signals
+    )
 
-    breakdown["feedback"] = feedback_pt
-
-    # Exact mathematical summation
-    total_unbounded = sum(breakdown.values())
-    composite_score = max(0, min(100, round(total_unbounded)))
+    matched_signals.extend(p_matched)
+    unmatched_signals.extend(p_unmatched)
 
     # Categorize match level confidence
     if composite_score >= 75:
@@ -547,10 +545,11 @@ def rank_funding_opportunities(
     """
     1. Retrieve researcher features from Part 2.
     2. Filter eligible funding opportunities using Part 3.
-    3. Calculate Part 4 rule + semantic matching scores for eligible opportunities ONLY.
-    4. Sort descending by match_score.
-    5. Filter by min_score_threshold.
-    6. Return top_k ranked recommendations.
+    3. Retrieve aggregated feedback signals from Part 5.
+    4. Calculate Part 4 rule + semantic matching + Part 5 bounded personalization scores.
+    5. Sort descending by match_score.
+    6. Filter by min_score_threshold.
+    7. Return top_k ranked personalized recommendations.
     """
     researcher_features = researcher_feature_service.build_researcher_features(db, user_id)
     if researcher_features is None:
@@ -578,8 +577,9 @@ def rank_funding_opportunities(
     eligible_db_opps = db.query(FundingOpportunity).filter(FundingOpportunity.id.in_(eligible_ids)).all()
     opp_by_id = {opp.id: opp for opp in eligible_db_opps}
 
-    feedback_records = db.query(FundingRecommendation).filter(FundingRecommendation.user_id == user_id).all()
-    feedback_map = {rec.funding_id: rec.feedback or rec.status for rec in feedback_records if rec.feedback or rec.status}
+    # Retrieve aggregated behavioral feedback signals for Part 5 personalization
+    user_signals = funding_personalization_service.get_user_feedback_signals(db, user_id)
+    feedback_map = user_signals.get("item_feedback_map", {})
 
     scored_recommendations = []
     for raw_item in eligible_raw_items:
@@ -592,7 +592,9 @@ def rank_funding_opportunities(
         opp_features["deadline_status"] = raw_item.get("deadline_status", "open")
 
         user_fb = feedback_map.get(opp_id)
-        rec_item = calculate_match_score(researcher_features, opp_features, user_feedback=user_fb)
+        rec_item = calculate_match_score(
+            researcher_features, opp_features, user_feedback=user_fb, signals=user_signals
+        )
         
         if rec_item["match_score"] >= min_score_threshold:
             scored_recommendations.append(rec_item)

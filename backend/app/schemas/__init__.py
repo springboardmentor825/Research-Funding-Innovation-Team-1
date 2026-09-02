@@ -183,10 +183,16 @@ class FundingRecommendationResponse(BaseModel):
     researcher_profile: Optional[dict] = None
     recommendations: List[FundingRecommendationItem] = []
 
-class FundingFeedbackRequest(BaseModel):
-    user_id: int
-    funding_id: int
-    feedback: str
+from app.schemas.funding_recommendation import (
+    FundingFeedbackRequest,
+    FundingFeedbackResponse,
+    FundingRecommendationHistoryItem,
+    FundingRecommendationHistoryResponse,
+    SavedFundingResponse,
+    DismissedFundingResponse,
+    AppliedFundingResponse,
+    ALLOWED_FEEDBACK_VALUES
+)
 
 # ==========================================
 # RAG SCHEMAS

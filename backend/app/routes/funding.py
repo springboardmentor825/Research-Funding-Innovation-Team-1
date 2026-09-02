@@ -26,6 +26,8 @@ router = APIRouter()
 # RECOMMENDATION ENGINE ENDPOINTS
 # ============================================================
 
+from app.services import funding_feedback_service
+
 @router.post("/recommendations/feedback", status_code=status.HTTP_200_OK)
 def submit_recommendation_feedback(
     feedback_in: FundingFeedbackRequest,
@@ -33,47 +35,20 @@ def submit_recommendation_feedback(
 ):
     """
     Store researcher feedback for a funding opportunity recommendation.
-    Supported values: relevant, not_relevant, saved, applied, dismissed.
+    Supported values: viewed, saved, relevant, not_relevant, dismissed, applied.
     """
-    valid_feedback = ["relevant", "not_relevant", "saved", "applied", "dismissed"]
-    if feedback_in.feedback not in valid_feedback:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid feedback value. Must be one of: {', '.join(valid_feedback)}"
-        )
-
-    # Check if recommendation record exists for this user and funding opportunity
-    rec = db.query(FundingRecommendation).filter(
-        FundingRecommendation.user_id == feedback_in.user_id,
-        FundingRecommendation.funding_id == feedback_in.funding_id
-    ).first()
-
-    if rec:
-        rec.feedback = feedback_in.feedback
-        rec.status = feedback_in.feedback
-    else:
-        rec = FundingRecommendation(
-            user_id=feedback_in.user_id,
-            funding_id=feedback_in.funding_id,
-            match_score=0.0,
-            reason="User provided direct feedback",
-            status=feedback_in.feedback,
-            feedback=feedback_in.feedback
-        )
-        db.add(rec)
-
-    try:
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to record feedback: {str(e)}"
-        )
-
+    res = funding_feedback_service.record_feedback(
+        db,
+        user_id=feedback_in.user_id,
+        funding_id=feedback_in.funding_id,
+        feedback=feedback_in.feedback
+    )
     return {
-        "status": "success",
-        "message": f"Feedback '{feedback_in.feedback}' recorded for funding_id {feedback_in.funding_id}."
+        "success": True,
+        "user_id": feedback_in.user_id,
+        "funding_id": feedback_in.funding_id,
+        "status": feedback_in.feedback,
+        "message": res["message"]
     }
 
 
@@ -86,7 +61,7 @@ def get_user_funding_recommendations(
 ):
     """
     Generate personalized funding opportunity recommendations for a researcher.
-    Evaluates profile, publications, patents, eligibility, and semantic fit.
+    Evaluates profile, publications, patents, eligibility, semantic fit, and behavioral feedback history.
     """
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -98,42 +73,33 @@ def get_user_funding_recommendations(
     recommendations_data = rank_funding_opportunities(db, user_id, top_k=top_k)
     return recommendations_data
 
-@router.get("/saved/{user_id}", response_model=List[FundingRecommendationItem])
+@router.get("/recommendations/saved/{user_id}")
+@router.get("/saved/{user_id}")
 def get_user_saved_funding(user_id: int, db: Session = Depends(get_db)):
     """Retrieve all funding opportunities saved by the user."""
-    recs = db.query(FundingRecommendation).filter(
-        FundingRecommendation.user_id == user_id,
-        FundingRecommendation.status == "saved"
-    ).all()
-    
-    saved_items = []
-    researcher_features = build_researcher_features(db, user_id)
-    for rec in recs:
-        opp = db.query(FundingOpportunity).filter(FundingOpportunity.id == rec.funding_id).first()
-        if opp:
-            opp_feat = extract_funding_features(opp)
-            rec_item = calculate_match_score(researcher_features, opp_feat, user_feedback="saved")
-            saved_items.append(rec_item)
-    return saved_items
+    saved_list = funding_feedback_service.get_saved_funding(db, user_id)
+    return {"user_id": user_id, "saved": saved_list}
 
+@router.get("/recommendations/dismissed/{user_id}")
+@router.get("/dismissed/{user_id}")
+def get_user_dismissed_funding(user_id: int, db: Session = Depends(get_db)):
+    """Retrieve all funding opportunities dismissed by the user."""
+    dismissed_list = funding_feedback_service.get_dismissed_funding(db, user_id)
+    return {"user_id": user_id, "dismissed": dismissed_list}
+
+@router.get("/recommendations/applied/{user_id}")
+@router.get("/applied/{user_id}")
+def get_user_applied_funding(user_id: int, db: Session = Depends(get_db)):
+    """Retrieve all funding opportunities marked as applied by the user."""
+    applied_list = funding_feedback_service.get_applied_funding(db, user_id)
+    return {"user_id": user_id, "applied": applied_list}
+
+@router.get("/recommendations/history/{user_id}")
 @router.get("/history/{user_id}")
 def get_user_recommendation_history(user_id: int, db: Session = Depends(get_db)):
-    """Retrieve user's recommendation activity log (viewed, saved, dismissed, applied, feedback)."""
-    recs = db.query(FundingRecommendation).filter(FundingRecommendation.user_id == user_id).all()
-    
-    history_items = []
-    for rec in recs:
-        opp = db.query(FundingOpportunity).filter(FundingOpportunity.id == rec.funding_id).first()
-        history_items.append({
-            "funding_id": rec.funding_id,
-            "title": opp.title if opp else f"Opportunity #{rec.funding_id}",
-            "funder": opp.funder if opp else "N/A",
-            "match_score": int(rec.match_score),
-            "status": rec.status or "viewed",
-            "feedback": rec.feedback or rec.status or "viewed",
-            "created_at": str(rec.created_at) if hasattr(rec, "created_at") else None
-        })
-    return {"user_id": user_id, "activity_count": len(history_items), "history": history_items}
+    """Retrieve user's recommendation interaction activity history."""
+    history_list = funding_feedback_service.get_feedback_history(db, user_id)
+    return {"user_id": user_id, "activity_count": len(history_list), "history": history_list}
 
 # ============================================================
 # FUNDING SEARCH / FILTER ENDPOINT
