@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react'
 import AppLayout from '../components/layout/AppLayout'
 import FundingRecommendationCard from '../components/dashboard/FundingRecommendationCard'
 import FundingDetailModal from '../components/dashboard/FundingDetailModal'
+import FundingAnalytics from '../components/FundingAnalytics'
 import { useAuth } from '../context/AuthContext'
 import fundingService from '../services/funding'
-import { Search, Filter, SlidersHorizontal, RefreshCw } from 'lucide-react'
+import { Search, Filter, SlidersHorizontal, RefreshCw, BarChart3, LayoutGrid } from 'lucide-react'
 
 function Funding() {
   const { user } = useAuth()
@@ -12,6 +13,7 @@ function Funding() {
   const [loading, setLoading] = useState(true)
   const [selectedRec, setSelectedRec] = useState(null)
   const [savedIds, setSavedIds] = useState(new Set())
+  const [viewMode, setViewMode] = useState('directory') // 'directory' | 'analytics'
   
   // Filter States
   const [searchQuery, setSearchQuery] = useState('')
@@ -98,87 +100,140 @@ function Funding() {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
-        {/* Filter Controls Bar */}
-        <div className="ai-card" style={{ padding: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
-          
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.85rem', alignItems: 'center', flexGrow: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-cyan-light)' }}>
-              <SlidersHorizontal size={16} /> Filters:
-            </div>
-
-            {/* Domain Selector */}
-            <select
-              value={domainFilter}
-              onChange={(e) => setDomainFilter(e.target.value)}
-              className="ai-select"
-              style={{ width: '180px', height: '38px', fontSize: '0.85rem' }}
+        {/* View Mode Toggle Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card, #1e293b)', padding: '0.75rem 1.25rem', borderRadius: '12px', border: '1px solid var(--border-color, #334155)' }}>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button
+              onClick={() => setViewMode('directory')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: viewMode === 'directory' ? '#3b82f6' : 'transparent',
+                color: viewMode === 'directory' ? '#ffffff' : '#94a3b8',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
             >
-              <option value="">All Domains</option>
-              <option value="Artificial Intelligence">Artificial Intelligence</option>
-              <option value="Computer Science">Computer Science</option>
-              <option value="Quantum Computing">Quantum Computing</option>
-              <option value="Biotechnology">Biotechnology</option>
-              <option value="Renewable Energy">Renewable Energy</option>
-            </select>
-
-            {/* Status Selector */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="ai-select"
-              style={{ width: '140px', height: '38px', fontSize: '0.85rem' }}
+              <LayoutGrid size={18} /> Grant Opportunities
+            </button>
+            <button
+              onClick={() => setViewMode('analytics')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: viewMode === 'analytics' ? '#3b82f6' : 'transparent',
+                color: viewMode === 'analytics' ? '#ffffff' : '#94a3b8',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
             >
-              <option value="">All Statuses</option>
-              <option value="open">Open</option>
-              <option value="closing_soon">Closing Soon</option>
-              <option value="active">Active</option>
-            </select>
-          </div>
-
-          {/* Sort By Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Sort By:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="ai-select"
-              style={{ width: '160px', height: '38px', fontSize: '0.85rem' }}
-            >
-              <option value="score_desc">Match Score (High → Low)</option>
-              <option value="score_asc">Match Score (Low → High)</option>
-              <option value="deadline">Deadline Urgency</option>
-            </select>
-
-            <button onClick={fetchOpportunities} className="btn-ai-secondary" style={{ height: '38px', padding: '0 0.85rem' }}>
-              <RefreshCw size={14} />
+              <BarChart3 size={18} /> Analytics & Intelligence
             </button>
           </div>
-
+          <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+            Active Researcher: <strong>User {userId}</strong>
+          </div>
         </div>
 
-        {/* Opportunities List */}
-        {loading ? (
-          <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-            Searching database grants...
-          </div>
-        ) : processedOpps.length === 0 ? (
-          <div className="ai-card" style={{ padding: '3rem 2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-            <Search size={36} color="#64748B" style={{ marginBottom: '0.75rem' }} />
-            <h3 style={{ color: '#F8FAFC', marginBottom: '0.25rem' }}>No Funding Opportunities Found</h3>
-            <p style={{ fontSize: '0.875rem' }}>Try adjusting domain filters or clearing search criteria.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '1.25rem' }}>
-            {processedOpps.map((opp, idx) => (
-              <FundingRecommendationCard
-                key={opp.id || idx}
-                recommendation={opp}
-                onViewDetails={setSelectedRec}
-                onFeedback={handleFeedback}
-                isSaved={savedIds.has(opp.funding_id || opp.id)}
-              />
-            ))}
-          </div>
+        {/* View Mode 1: Directory */}
+        {viewMode === 'directory' && (
+          <>
+            {/* Filter Controls Bar */}
+            <div className="ai-card" style={{ padding: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
+              
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.85rem', alignItems: 'center', flexGrow: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-cyan-light)' }}>
+                  <SlidersHorizontal size={16} /> Filters:
+                </div>
+
+                {/* Domain Selector */}
+                <select
+                  value={domainFilter}
+                  onChange={(e) => setDomainFilter(e.target.value)}
+                  className="ai-select"
+                  style={{ width: '180px', height: '38px', fontSize: '0.85rem' }}
+                >
+                  <option value="">All Domains</option>
+                  <option value="Artificial Intelligence">Artificial Intelligence</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Quantum Computing">Quantum Computing</option>
+                  <option value="Biotechnology">Biotechnology</option>
+                  <option value="Renewable Energy">Renewable Energy</option>
+                </select>
+
+                {/* Status Selector */}
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="ai-select"
+                  style={{ width: '140px', height: '38px', fontSize: '0.85rem' }}
+                >
+                  <option value="">All Statuses</option>
+                  <option value="open">Open</option>
+                  <option value="closing_soon">Closing Soon</option>
+                  <option value="active">Active</option>
+                </select>
+              </div>
+
+              {/* Sort By Selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Sort By:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="ai-select"
+                  style={{ width: '160px', height: '38px', fontSize: '0.85rem' }}
+                >
+                  <option value="score_desc">Match Score (High → Low)</option>
+                  <option value="score_asc">Match Score (Low → High)</option>
+                  <option value="deadline">Deadline Urgency</option>
+                </select>
+
+                <button onClick={fetchOpportunities} className="btn-ai-secondary" style={{ height: '38px', padding: '0 0.85rem' }}>
+                  <RefreshCw size={14} />
+                </button>
+              </div>
+
+            </div>
+
+            {/* Opportunities List */}
+            {loading ? (
+              <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                Searching database grants...
+              </div>
+            ) : processedOpps.length === 0 ? (
+              <div className="ai-card" style={{ padding: '3rem 2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <Search size={36} color="#64748B" style={{ marginBottom: '0.75rem' }} />
+                <h3 style={{ color: '#F8FAFC', marginBottom: '0.25rem' }}>No Funding Opportunities Found</h3>
+                <p style={{ fontSize: '0.875rem' }}>Try adjusting domain filters or clearing search criteria.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '1.25rem' }}>
+                {processedOpps.map((opp, idx) => (
+                  <FundingRecommendationCard
+                    key={opp.id || idx}
+                    recommendation={opp}
+                    onViewDetails={setSelectedRec}
+                    onFeedback={handleFeedback}
+                    isSaved={savedIds.has(opp.funding_id || opp.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* View Mode 2: Analytics & Intelligence */}
+        {viewMode === 'analytics' && (
+          <FundingAnalytics userId={userId} />
         )}
 
         {/* Modal View */}

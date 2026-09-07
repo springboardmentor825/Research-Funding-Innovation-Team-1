@@ -10,6 +10,8 @@ import Innovation from '../pages/Innovation'
 import Profile from '../pages/Profile'
 import Publications from '../pages/Publications'
 import Patents from '../pages/Patents'
+import PatentIntelligence from '../pages/PatentIntelligence'
+import ResearcherProfile from '../pages/ResearcherProfile'
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -49,6 +51,12 @@ const AppRoutes = () => {
           <Profile />
         </ProtectedRoute>
       } />
+
+      <Route path="/researcher-intelligence" element={
+        <ProtectedRoute>
+          <ResearcherProfile />
+        </ProtectedRoute>
+      } />
       
       <Route path="/publications" element={
         <ProtectedRoute>
@@ -59,6 +67,12 @@ const AppRoutes = () => {
       <Route path="/patents" element={
         <ProtectedRoute>
           <Patents />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/patent-intelligence" element={
+        <ProtectedRoute>
+          <PatentIntelligence />
         </ProtectedRoute>
       } />
       

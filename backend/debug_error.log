@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "C:\Users\MADHU KRISHNA\OneDrive\Documents\project\Research-Funding-Innovation-Team-1\backend\debug_runner.py", line 8, in <module>
+    verify_all_parts()
+  File "C:\Users\MADHU KRISHNA\OneDrive\Documents\project\Research-Funding-Innovation-Team-1\backend\test_all_parts_1_to_9.py", line 59, in verify_all_parts
+    recs = funding_matching_service.get_funding_recommendations(db, test_user_id, limit=5)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'app.services.funding_matching_service' has no attribute 'get_funding_recommendations'. Did you mean: 'FundingRecommendation'?

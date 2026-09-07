@@ -22,8 +22,10 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
     { label: 'Recommendations', path: '/recommendations', icon: Sparkles, badge: 'AI' },
     { label: 'Funding Opportunities', path: '/funding', icon: Search },
     { label: 'My Profile', path: '/profile', icon: User },
+    { label: 'Researcher Intelligence', path: '/researcher-intelligence', icon: User, badge: '360°' },
     { label: 'Publications', path: '/publications', icon: BookOpen },
     { label: 'Patents', path: '/patents', icon: Award },
+    { label: 'Patent Intelligence', path: '/patent-intelligence', icon: Award, badge: 'Trends' },
     { label: 'Innovation Hub', path: '/innovation', icon: Lightbulb },
   ]
 

@@ -20,8 +20,11 @@ function Recommendations() {
 
   const userId = user?.id || 16
 
+  const [error, setError] = useState(null)
+
   const fetchData = async () => {
     setLoading(true)
+    setError(null)
     try {
       // 1. Fetch recommendations
       const data = await fundingService.getRecommendations(userId, 20)
@@ -30,21 +33,17 @@ function Recommendations() {
 
       // 2. Fetch saved opportunities
       try {
-        const resSaved = await fetch(`http://127.0.0.1:8000/api/funding/saved/${userId}`)
-        if (resSaved.ok) {
-          const savedData = await resSaved.json()
-          if (Array.isArray(savedData)) {
-            const sIds = new Set(savedData.map(item => item.funding_id || item.id))
-            setSavedIds(sIds)
-          }
-        }
+        const savedData = await fundingService.getSavedFunding(userId)
+        const savedArr = Array.isArray(savedData) ? savedData : (savedData?.saved || [])
+        const sIds = new Set(savedArr.map(item => item.funding_id || item.id))
+        setSavedIds(sIds)
       } catch (err) {
         console.warn('Saved endpoint offline or empty:', err)
       }
 
       // 3. Fetch activity history
       try {
-        const resHist = await fetch(`http://127.0.0.1:8000/api/funding/history/${userId}`)
+        const resHist = await fetch(`http://127.0.0.1:8000/api/v1/funding/history/${userId}`)
         if (resHist.ok) {
           const histData = await resHist.json()
           setHistoryItems(histData.history || [])
@@ -55,6 +54,7 @@ function Recommendations() {
 
     } catch (err) {
       console.error('Recommendations API error:', err)
+      setError('Unable to load recommendations. Please verify backend service and retry.')
     } finally {
       setLoading(false)
     }
@@ -87,10 +87,14 @@ function Recommendations() {
       }
 
       // Refresh activity log history
-      const resHist = await fetch(`http://127.0.0.1:8000/api/funding/history/${userId}`)
-      if (resHist.ok) {
-        const histData = await resHist.json()
-        setHistoryItems(histData.history || [])
+      try {
+        const resHist = await fetch(`http://127.0.0.1:8000/api/v1/funding/history/${userId}`)
+        if (resHist.ok) {
+          const histData = await resHist.json()
+          setHistoryItems(histData.history || [])
+        }
+      } catch (e) {
+        // ignore history reload error
       }
 
     } catch (err) {
@@ -113,7 +117,8 @@ function Recommendations() {
       const matchesText = (
         (r.title && r.title.toLowerCase().includes(q)) ||
         (r.funder && r.funder.toLowerCase().includes(q)) ||
-        (r.description && r.description.toLowerCase().includes(q))
+        (r.description && r.description.toLowerCase().includes(q)) ||
+        (r.keywords && r.keywords.toLowerCase().includes(q))
       )
       if (!matchesText) return false
     }
@@ -131,13 +136,15 @@ function Recommendations() {
       return savedIds.has(r.funding_id || r.id)
     }
     if (activeTab === 'closing') {
-      return r.deadline_status === 'closing_soon' || (r.deadline && (r.deadline.includes('2026') || r.deadline.includes('2025')))
+      const deadlineStr = r.deadline || ''
+      return r.deadline_status === 'closing_soon' || deadlineStr.includes('10 days') || deadlineStr.includes('15 days') || deadlineStr.includes('20 days') || (deadlineStr.includes('2026') && (deadlineStr.includes('-09-') || deadlineStr.includes('-10-')))
     }
     if (activeTab === 'new') {
-      return r.status === 'recommended' || (r.match_score || 0) >= 70
+      return r.status === 'recommended' || r.status === 'open' || (r.match_score || 0) >= 70
     }
     if (activeTab === 'high_value') {
-      return (r.amount || r.funding_amount || r.amount_range || '').includes('1,000,000') || (r.amount || r.funding_amount || r.amount_range || '').includes('500,000')
+      const amt = (r.amount || r.funding_amount || r.amount_range || '')
+      return amt.includes('1,000,000') || amt.includes('500,000') || amt.includes('750,000') || amt.includes('800,000') || amt.includes('600,000') || amt.includes('1,200,000')
     }
     return true
   })
@@ -276,6 +283,14 @@ function Recommendations() {
         {loading ? (
           <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
             Analyzing profile signals & computing match recommendations...
+          </div>
+        ) : error ? (
+          <div className="ai-card" style={{ padding: '3rem 2rem', textAlign: 'center', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+            <h3 style={{ color: '#F8FAFC', marginBottom: '0.5rem' }}>Unable to Load Recommendations</h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>{error}</p>
+            <button onClick={fetchData} className="btn-ai-primary" style={{ padding: '0.5rem 1.25rem' }}>
+              Retry
+            </button>
           </div>
         ) : activeTab === 'history' ? (
           /* Activity History view */

@@ -26,7 +26,7 @@ router = APIRouter()
 # RECOMMENDATION ENGINE ENDPOINTS
 # ============================================================
 
-from app.services import funding_feedback_service
+from app.services import funding_feedback_service, funding_analytics_service
 
 @router.post("/recommendations/feedback", status_code=status.HTTP_200_OK)
 def submit_recommendation_feedback(
@@ -100,6 +100,68 @@ def get_user_recommendation_history(user_id: int, db: Session = Depends(get_db))
     """Retrieve user's recommendation interaction activity history."""
     history_list = funding_feedback_service.get_feedback_history(db, user_id)
     return {"user_id": user_id, "activity_count": len(history_list), "history": history_list}
+
+# ============================================================
+# PART 6 — FUNDING RECOMMENDATION ANALYTICS & EVALUATION ENDPOINTS
+# ============================================================
+
+@router.get("/analytics")
+def get_global_funding_analytics(db: Session = Depends(get_db)):
+    """
+    Retrieve global funding landscape, score distribution, and activity analytics.
+    """
+    landscape = funding_analytics_service.get_global_funding_landscape(db)
+    all_recs = db.query(FundingRecommendation).all()
+    rec_dicts = [{"match_score": float(r.match_score), "match_breakdown": {}} for r in all_recs]
+    score_analytics = funding_analytics_service.get_recommendation_score_analytics(rec_dicts)
+    activity_analytics = funding_analytics_service.get_recommendation_activity_analytics(db)
+    
+    return {
+        "funding_landscape": landscape,
+        "score_analytics": score_analytics,
+        "recommendation_activity": activity_analytics
+    }
+
+@router.get("/analytics/{user_id}")
+def get_researcher_funding_analytics(user_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieve comprehensive researcher-specific funding analytics, score distribution,
+    domain metrics, personalization performance, and diagnostics.
+    """
+    try:
+        return funding_analytics_service.get_researcher_analytics(db, user_id)
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(ve)
+        )
+
+@router.get("/recommendations/performance/{user_id}")
+def get_recommendation_performance(user_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieve Precision@K, recommendation engine diagnostics, evidence completeness,
+    and health score for a researcher.
+    """
+    try:
+        return funding_analytics_service.get_performance_analytics(db, user_id)
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(ve)
+        )
+
+@router.get("/dashboard/{user_id}")
+def get_funding_dashboard_summary(user_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieve a clean, frontend-ready funding dashboard summary for a researcher.
+    """
+    try:
+        return funding_analytics_service.get_dashboard_summary(db, user_id)
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(ve)
+        )
 
 # ============================================================
 # FUNDING SEARCH / FILTER ENDPOINT

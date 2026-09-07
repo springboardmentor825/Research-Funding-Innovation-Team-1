@@ -61,5 +61,3 @@ class Patent(Base):
     filing_date = Column(Date, nullable=False, index=True)
 
     user = relationship("User", back_populates="patents")
-
-from app.models.funding_recommendation import FundingRecommendation

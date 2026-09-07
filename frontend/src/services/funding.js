@@ -62,15 +62,56 @@ const fundingService = {
   getSavedFunding: async (userId) => {
     try {
       const response = await api.get(`/funding/saved/${userId}`)
-      return Array.isArray(response.data) ? response.data : []
+      return Array.isArray(response.data) ? response.data : (response.data?.saved || [])
     } catch (err) {
       try {
         const response = await api.get(`/v1/funding/saved/${userId}`)
-        return Array.isArray(response.data) ? response.data : []
+        return Array.isArray(response.data) ? response.data : (response.data?.saved || [])
       } catch (innerErr) {
         console.error('getSavedFunding service error:', innerErr)
         return []
       }
+    }
+  },
+
+  // Part 6 Analytics APIs
+  getGlobalAnalytics: async () => {
+    try {
+      const response = await api.get('/funding/analytics')
+      return response.data
+    } catch (err) {
+      console.error('getGlobalAnalytics service error:', err)
+      return null
+    }
+  },
+
+  getResearcherAnalytics: async (userId) => {
+    try {
+      const response = await api.get(`/funding/analytics/${userId}`)
+      return response.data
+    } catch (err) {
+      console.error('getResearcherAnalytics service error:', err)
+      return null
+    }
+  },
+
+  getPerformanceAnalytics: async (userId) => {
+    try {
+      const response = await api.get(`/funding/recommendations/performance/${userId}`)
+      return response.data
+    } catch (err) {
+      console.error('getPerformanceAnalytics service error:', err)
+      return null
+    }
+  },
+
+  getDashboardSummary: async (userId) => {
+    try {
+      const response = await api.get(`/funding/dashboard/${userId}`)
+      return response.data
+    } catch (err) {
+      console.error('getDashboardSummary service error:', err)
+      return null
     }
   }
 }

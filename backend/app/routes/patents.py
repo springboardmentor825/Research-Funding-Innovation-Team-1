@@ -6,7 +6,35 @@ from app.models import User, Patent
 from app.schemas import PatentCreate, PatentUpdate, Patent as PatentSchema
 from app.auth import get_current_user
 
+from app.services import patent_intelligence_service
+from app.schemas.research_intelligence import PatentAnalyticsSummary, PatentDetailIntelligence
+
 router = APIRouter()
+
+@router.get("/intelligence", response_model=PatentAnalyticsSummary)
+def get_patent_intelligence(db: Session = Depends(get_db)):
+    """Retrieve comprehensive Part 8 Patent & Innovation Intelligence analytics."""
+    return patent_intelligence_service.get_patent_intelligence_analytics(db)
+
+@router.get("/trends")
+def get_patent_trends(db: Session = Depends(get_db)):
+    """Retrieve temporal technology growth trends and emerging technology indicators."""
+    analytics = patent_intelligence_service.get_patent_intelligence_analytics(db)
+    return {
+        "trends": analytics["trends"],
+        "emerging_technologies": analytics["emerging_technologies"]
+    }
+
+@router.get("/{patent_id}/intelligence", response_model=PatentDetailIntelligence)
+def get_patent_detail_intelligence(patent_id: int, db: Session = Depends(get_db)):
+    """Retrieve detailed innovation intelligence and indicators for a specific patent."""
+    detail = patent_intelligence_service.get_patent_detail_intelligence(db, patent_id)
+    if not detail:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Patent with ID {patent_id} does not exist."
+        )
+    return detail
 
 @router.get("/", response_model=List[PatentSchema])
 def list_my_patents(
