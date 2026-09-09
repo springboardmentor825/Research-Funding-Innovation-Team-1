@@ -1,0 +1,595 @@
+[
+  {
+    "researcher_id": "R007",
+    "name": "Dr. Sneha Reddy",
+    "institution": "IIIT Hyderabad",
+    "top_expertise_areas": [
+      "natural language processing",
+      "large language models",
+      "text mining",
+      "knowledge graphs",
+      "ai",
+      "data analytics",
+      "knowledge",
+      "mining"
+    ],
+    "publication_strength_score": 41.91,
+    "patent_strength_score": 48.11,
+    "overall_researcher_score": 44.39,
+    "matched_publications_sample": [
+      {
+        "title": "COMET: Commonsense Transformers for Automatic Knowledge Graph Construction",
+        "similarity": 0.4195,
+        "cited_by_count": 871
+      },
+      {
+        "title": "ConceptNet 5.5: An Open Multilingual Graph of General Knowledge",
+        "similarity": 0.3445,
+        "cited_by_count": 2093
+      },
+      {
+        "title": "SciBERT: A Pretrained Language Model for Scientific Text",
+        "similarity": 0.3425,
+        "cited_by_count": 3077
+      },
+      {
+        "title": "ATOMIC: An Atlas of Machine Commonsense for If-Then Reasoning",
+        "similarity": 0.3285,
+        "cited_by_count": 747
+      },
+      {
+        "title": "How to do Linguistics with R",
+        "similarity": 0.3233,
+        "cited_by_count": 819
+      }
+    ],
+    "matched_patents_sample": [
+      {
+        "title": "\"AN ALOE VERA GEL MEMBRANE FOR FILTRATION AND A PROCESS FOR PREPARATION THEREOF\"",
+        "similarity": 0.246,
+        "status": "Application Refused U/S 15",
+        "status_weight": 0.1
+      },
+      {
+        "title": "\"SCAR PRIMERS AND A KIT FOR THE AUTHENTICATION OF UNANI DRUG ZARISHK (BERBERIS ARISTATA) AND ITS ADULTERANT DARU HARIDRA (COSCINIUM FENESTRATUM)\".",
+        "similarity": 0.246,
+        "status": "Granted Application, Patent Number :292117",
+        "status_weight": 1.0
+      },
+      {
+        "title": "\"SCAR PRIMERS AND A KIT FOR THE AUTHENTICATION OF UNANI DRUG SENNA (CASSIA ACUTIFOLIA & CASSIA ANGUSTIFOLIA) FROM ITS ADULTERANT (CASSIA TORA & CASSIA SOPHERA)\".",
+        "similarity": 0.246,
+        "status": "Granted Application, Patent Number :292112",
+        "status_weight": 1.0
+      },
+      {
+        "title": "\"SCAR PRIMERS AND A KIT FOR THE AUTHENTICATION OF UNANI DRUG FILFIL SIYAH (PIPER NIGRUM) AND ITS ADULTERANT CARICA PAPAYA\".",
+        "similarity": 0.246,
+        "status": "Granted Application, Patent Number :286936",
+        "status_weight": 1.0
+      },
+      {
+        "title": "“FLAVOURED AYURVEDIC FORMULATION AND PROCESS THEREOF”",
+        "similarity": 0.246,
+        "status": "REFUSED U/S 25(1)",
+        "status_weight": 0.1
+      }
+    ],
+    "explanation": "Dr. Sneha Reddy demonstrates moderate research intelligence (score: 44.4/100). Top expertise areas: natural language processing, large language models, text mining, knowledge graphs, ai. Publication strength: 41.9/100 based on 5 top-matched publications. Patent strength: 48.1/100 based on 5 top-matched patents (2010 Indian Patent Office data, status-weighted). Key matching keywords: mining, data, processing, knowledge, domain."
+  },
+  {
+    "researcher_id": "R006",
+    "name": "Dr. Karthik Subramaniam",
+    "institution": "IIT Kharagpur",
+    "top_expertise_areas": [
+      "synthetic biology",
+      "biodegradable materials",
+      "green chemistry",
+      "material science",
+      "biotech",
+      "sustainability",
+      "science",
+      "biology"
+    ],
+    "publication_strength_score": 38.13,
+    "patent_strength_score": 52.56,
+    "overall_researcher_score": 43.9,
+    "matched_publications_sample": [
+      {
+        "title": "Computational Redesign of a PETase for Plastic Biodegradation under Ambient Condition by the GRAPE Strategy",
+        "similarity": 0.2803,
+        "cited_by_count": 598
+      },
+      {
+        "title": "An overview of biodegradable packaging in food industry",
+        "similarity": 0.2761,
+        "cited_by_count": 539
+      },
+      {
+        "title": "Arbitrary-Direction SAR Ship Detection Method for Multiscale Imbalance",
+        "similarity": 0.2554,
+        "cited_by_count": 84
+      },
+      {
+        "title": "Macro- and micro- plastics in soil-plant system: Effects of plastic mulch film residues on wheat (Triticum aestivum) growth",
+        "similarity": 0.243,
+        "cited_by_count": 1201
+      },
+      {
+        "title": "A Review of Biodegradable Plastics: Chemistry, Applications, Properties, and Future Research Needs",
+        "similarity": 0.2414,
+        "cited_by_count": 502
+      }
+    ],
+    "matched_patents_sample": [
+      {
+        "title": "FORMULATION FOR THE TREATMENT OF BACTERIAL BLIGHT DISEASE",
+        "similarity": 0.3666,
+        "status": "Granted Application, Patent Number :335342",
+        "status_weight": 1.0
+      },
+      {
+        "title": "A PROCESS OF STERILIZATION OF COMMONLY AVAILABLE MALE CONDOMS",
+        "similarity": 0.3666,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "OPTIMIZATION OF BIOFUEL PRODUCTION",
+        "similarity": 0.3666,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "ALGAE PRODUCTION",
+        "similarity": 0.3666,
+        "status": "Deemed to be withdrawn u/s 11B(4)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "MICROORGANISM-INACTIVATING AGENT",
+        "similarity": 0.3666,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      }
+    ],
+    "explanation": "Dr. Karthik Subramaniam demonstrates moderate research intelligence (score: 43.9/100). Top expertise areas: synthetic biology, biodegradable materials, green chemistry, material science, biotech. Publication strength: 38.1/100 based on 5 top-matched publications. Patent strength: 52.6/100 based on 5 top-matched patents (2010 Indian Patent Office data, status-weighted). Key matching keywords: biology, techniques, green, material, applications, science."
+  },
+  {
+    "researcher_id": "R004",
+    "name": "Dr. Arjun Verma",
+    "institution": "IIT Delhi",
+    "top_expertise_areas": [
+      "engineering",
+      "ai",
+      "computer vision",
+      "autonomous systems",
+      "reinforcement learning",
+      "industrial automation",
+      "robotics",
+      "learning"
+    ],
+    "publication_strength_score": 45.01,
+    "patent_strength_score": 39.58,
+    "overall_researcher_score": 42.84,
+    "matched_publications_sample": [
+      {
+        "title": "Champion-level drone racing using deep reinforcement learning",
+        "similarity": 0.4656,
+        "cited_by_count": 607
+      },
+      {
+        "title": "Deep Reinforcement Learning framework for Autonomous Driving",
+        "similarity": 0.4449,
+        "cited_by_count": 833
+      },
+      {
+        "title": "Deep Reinforcement Learning: A Survey",
+        "similarity": 0.4405,
+        "cited_by_count": 825
+      },
+      {
+        "title": "Model-based Reinforcement Learning: A Survey",
+        "similarity": 0.4335,
+        "cited_by_count": 501
+      },
+      {
+        "title": "Deep Q-learning From Demonstrations",
+        "similarity": 0.421,
+        "cited_by_count": 819
+      }
+    ],
+    "matched_patents_sample": [
+      {
+        "title": "DYNAMICALLY GENERATER KEYPAD FOR PREDICTIVELY DISPLAYING CHARACTERS",
+        "similarity": 0.12,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "\"SHARING RESOURCES BETWEEN A CPU AND GPU\"",
+        "similarity": 0.12,
+        "status": "Application Refused U/S 15",
+        "status_weight": 0.1
+      },
+      {
+        "title": "System And Method For Efficiently Performing Image Processing Operations",
+        "similarity": 0.12,
+        "status": "Deemed to be withdrawn u/s 11B(4)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "SYSTEM AND METHOD FOR PROCESSING APPLICATION LOGIC OF A VIRTUAL AND A REAL-WORLD AMBIENT INTELLIGENCE ENVIRONMENT",
+        "similarity": 0.1133,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "METHOD AND SYSTEM FOR GENERATING AND EMBEDDING AVATAR",
+        "similarity": 0.1133,
+        "status": "Granted Application, Patent Number :299256",
+        "status_weight": 1.0
+      }
+    ],
+    "explanation": "Dr. Arjun Verma demonstrates moderate research intelligence (score: 42.8/100). Top expertise areas: engineering, ai, computer vision, autonomous systems, reinforcement learning. Publication strength: 45.0/100 based on 5 top-matched publications. Patent strength: 39.6/100 based on 5 top-matched patents (2010 Indian Patent Office data, status-weighted). Key matching keywords: learning, engineering, computer, systems, ai."
+  },
+  {
+    "researcher_id": "R001",
+    "name": "Dr. Ananya Krishnan",
+    "institution": "IIT Madras",
+    "top_expertise_areas": [
+      "machine learning",
+      "sensor networks",
+      "smart agriculture",
+      "predictive analytics",
+      "ai",
+      "iot",
+      "sustainability",
+      "sensor"
+    ],
+    "publication_strength_score": 41.5,
+    "patent_strength_score": 44.14,
+    "overall_researcher_score": 42.56,
+    "matched_publications_sample": [
+      {
+        "title": "Agri-food 4.0: A survey of the supply chains and technologies for the future agriculture",
+        "similarity": 0.3913,
+        "cited_by_count": 819
+      },
+      {
+        "title": "A systematic literature review on machine learning applications for sustainable agriculture supply chain performance",
+        "similarity": 0.3762,
+        "cited_by_count": 761
+      },
+      {
+        "title": "Precision agriculture using IoT data analytics and machine learning",
+        "similarity": 0.3615,
+        "cited_by_count": 541
+      },
+      {
+        "title": "Smart Farming: Internet of Things (IoT)-Based Sustainable Agriculture",
+        "similarity": 0.3412,
+        "cited_by_count": 713
+      },
+      {
+        "title": "Sustainable AI-based production agriculture: Exploring AI applications and implications in agricultural practices",
+        "similarity": 0.334,
+        "cited_by_count": 213
+      }
+    ],
+    "matched_patents_sample": [
+      {
+        "title": "\"MILD FAT\"",
+        "similarity": 0.162,
+        "status": "Application Refused U/S 15",
+        "status_weight": 0.1
+      },
+      {
+        "title": "A NOVEL FIELD TEST STRIP WHICH ENABLES SPOT TEST FOR THE DETECTION AND IDENTIFICATION OF ADDED SUGAR IN THE FRUIT JUICE AND OTHER FOOD PRODUCTS",
+        "similarity": 0.162,
+        "status": "Deemed to be withdrawn u/s 11B(4)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "SIMPLE TIME DISPLAY CARD/ DAHI MAKER",
+        "similarity": 0.162,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "A NEW METHOD FOR PROCESSING PANEER.",
+        "similarity": 0.162,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "AMLA SOFT DRINKS",
+        "similarity": 0.1478,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      }
+    ],
+    "explanation": "Dr. Ananya Krishnan demonstrates moderate research intelligence (score: 42.6/100). Top expertise areas: machine learning, sensor networks, smart agriculture, predictive analytics, ai. Publication strength: 41.5/100 based on 5 top-matched publications. Patent strength: 44.1/100 based on 5 top-matched patents (2010 Indian Patent Office data, status-weighted). Key matching keywords: sensor, optimization, waste."
+  },
+  {
+    "researcher_id": "R003",
+    "name": "Dr. Priya Nair",
+    "institution": "IIT Bombay",
+    "top_expertise_areas": [
+      "engineering",
+      "embedded systems",
+      "renewable energy",
+      "smart cities",
+      "environmental monitoring",
+      "iot",
+      "sustainability",
+      "systems"
+    ],
+    "publication_strength_score": 42.53,
+    "patent_strength_score": 41.09,
+    "overall_researcher_score": 41.95,
+    "matched_publications_sample": [
+      {
+        "title": "Future smart cities: requirements, emerging technologies, applications, challenges, and future aspects",
+        "similarity": 0.4117,
+        "cited_by_count": 596
+      },
+      {
+        "title": "Urban Digital Twin Challenges: A Systematic Review and Perspectives for Sustainable Smart Cities",
+        "similarity": 0.4066,
+        "cited_by_count": 280
+      },
+      {
+        "title": "IoT in Smart Cities: A Survey of Technologies, Practices and Challenges",
+        "similarity": 0.4014,
+        "cited_by_count": 504
+      },
+      {
+        "title": "A digital twin smart city for citizen feedback",
+        "similarity": 0.3991,
+        "cited_by_count": 526
+      },
+      {
+        "title": "On big data, artificial intelligence and smart cities",
+        "similarity": 0.3932,
+        "cited_by_count": 1136
+      }
+    ],
+    "matched_patents_sample": [
+      {
+        "title": "METHOD AND SYSTEM FOR THE SMALL-SCALE PRODUCTION OF LIQUIFIED NATURAL GAS (LNG) FROM LOW-PRESSURE GAS",
+        "similarity": 0.0573,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "\"SECURITY SEALS FOR UTILITY METERS\"",
+        "similarity": 0.0573,
+        "status": "Application Refused U/S 15",
+        "status_weight": 0.1
+      },
+      {
+        "title": "\"IMPROVED PLASTIC HINGE\"",
+        "similarity": 0.0573,
+        "status": "Deemed to be withdrawn u/s 11B(4)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "\"AN IMPROVED PEDAL RETAINING MEANS WHICH REDUCES THE PEDAL OPERATING EFFORT\".",
+        "similarity": 0.0573,
+        "status": "Granted Application, Patent Number :327008",
+        "status_weight": 1.0
+      },
+      {
+        "title": "\"LEVER-TYPE CONNECTOR, CONNECTOR ASSEMBLY AND CONNECTING METHOD\"",
+        "similarity": 0.0573,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      }
+    ],
+    "explanation": "Dr. Priya Nair demonstrates moderate research intelligence (score: 42.0/100). Top expertise areas: engineering, embedded systems, renewable energy, smart cities, environmental monitoring. Publication strength: 42.5/100 based on 5 top-matched publications. Patent strength: 41.1/100 based on 5 top-matched patents (2010 Indian Patent Office data, status-weighted). Key matching keywords: systems, power, engineering."
+  },
+  {
+    "researcher_id": "R005",
+    "name": "Dr. Meera Iyer",
+    "institution": "National Institute of Technology, Trichy",
+    "top_expertise_areas": [
+      "engineering",
+      "circular economy",
+      "waste management",
+      "life-cycle assessment",
+      "policy modeling",
+      "sustainability",
+      "data analytics",
+      "data"
+    ],
+    "publication_strength_score": 40.28,
+    "patent_strength_score": 43.43,
+    "overall_researcher_score": 41.54,
+    "matched_publications_sample": [
+      {
+        "title": "Beyond Mechanical Recycling: Giving New Life to Plastic Waste",
+        "similarity": 0.3516,
+        "cited_by_count": 1812
+      },
+      {
+        "title": "Life cycle environmental impacts of chemical recycling via pyrolysis of mixed plastic waste in comparison with mechanical recycling and energy recovery",
+        "similarity": 0.3211,
+        "cited_by_count": 597
+      },
+      {
+        "title": "A Review on the Challenges and Choices for Food Waste Valorization: Environmental and Economic Impacts",
+        "similarity": 0.3099,
+        "cited_by_count": 351
+      },
+      {
+        "title": "Metrics of Green Chemistry and Sustainability: Past, Present, and Future",
+        "similarity": 0.3001,
+        "cited_by_count": 1247
+      },
+      {
+        "title": "Circular economy approach in solid waste management system to achieve UN-SDGs: Solutions for post-COVID recovery",
+        "similarity": 0.2988,
+        "cited_by_count": 510
+      }
+    ],
+    "matched_patents_sample": [
+      {
+        "title": "\"PROCESS OF IMPROVING QUALITY AND CHANGING COLOUR OF LIGHT COLOURED TIMBER AND ITS PRODUCTS\"",
+        "similarity": 0.0533,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "METHOD AND DEVICE FOR HEATING, IN PARTICULAR HIGHLY VISCOUS PRODUCTS",
+        "similarity": 0.0533,
+        "status": "Granted Application, Patent Number :295064",
+        "status_weight": 1.0
+      },
+      {
+        "title": "METHOD AND SYSTEM FOR THE SMALL-SCALE PRODUCTION OF LIQUIFIED NATURAL GAS (LNG) FROM LOW-PRESSURE GAS",
+        "similarity": 0.0533,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "“A CANISTER HOLDING AND DEPLOYING SYSTEM FOR A MOBILE AUTONOMOUS LAUNCHER (MAL)”",
+        "similarity": 0.0533,
+        "status": "Granted Application, Patent Number :413511",
+        "status_weight": 1.0
+      },
+      {
+        "title": "DEVICE FOR ORGANIZING AND TRANSFORMING FUNCTIONALITY OF A SPACE",
+        "similarity": 0.0533,
+        "status": "Granted Application, Patent Number :278900",
+        "status_weight": 1.0
+      }
+    ],
+    "explanation": "Dr. Meera Iyer demonstrates moderate research intelligence (score: 41.5/100). Top expertise areas: engineering, circular economy, waste management, life-cycle assessment, policy modeling. Publication strength: 40.3/100 based on 5 top-matched publications. Patent strength: 43.4/100 based on 5 top-matched patents (2010 Indian Patent Office data, status-weighted). Key matching keywords: data, life, studies, systems, environmental, engineering."
+  },
+  {
+    "researcher_id": "R008",
+    "name": "Dr. Vikram Rao",
+    "institution": "IIT Kanpur",
+    "top_expertise_areas": [
+      "engineering",
+      "edge computing",
+      "sensor fusion",
+      "predictive maintenance",
+      "industrial iot",
+      "iot",
+      "ai",
+      "time"
+    ],
+    "publication_strength_score": 40.72,
+    "patent_strength_score": 41.94,
+    "overall_researcher_score": 41.21,
+    "matched_publications_sample": [
+      {
+        "title": "Survey on Multi-Access Edge Computing for Internet of Things Realization",
+        "similarity": 0.3187,
+        "cited_by_count": 787
+      },
+      {
+        "title": "Collaborative Cloud and Edge Computing for Latency Minimization",
+        "similarity": 0.3044,
+        "cited_by_count": 669
+      },
+      {
+        "title": "Edge Computing: Vision and Challenges",
+        "similarity": 0.299,
+        "cited_by_count": 8117
+      },
+      {
+        "title": "Future Edge Cloud and Edge Computing for Internet of Things Applications",
+        "similarity": 0.2977,
+        "cited_by_count": 869
+      },
+      {
+        "title": "Mobile-Edge Computing: Partial Computation Offloading Using Dynamic Voltage Scaling",
+        "similarity": 0.2976,
+        "cited_by_count": 1022
+      }
+    ],
+    "matched_patents_sample": [
+      {
+        "title": "NOVEL COMPOSITIONS FOR ENDODONTIC DISINFECTION",
+        "similarity": 0.0315,
+        "status": "Granted Application, Patent Number :413701",
+        "status_weight": 1.0
+      },
+      {
+        "title": "NON CONVENTIONAL ENERGY TRAIN",
+        "similarity": 0.0315,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "A LOG DEBARKING ASSEMBLY",
+        "similarity": 0.0315,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "SIX STROKE DIESEL ENGINE",
+        "similarity": 0.0315,
+        "status": "Deemed to be withdrawn u/s 11B(4)",
+        "status_weight": 0.1
+      },
+      {
+        "title": "INTELLIGENT LICENSE PLATE SYSTEM",
+        "similarity": 0.0315,
+        "status": "Abandoned U/s 21(1)",
+        "status_weight": 0.1
+      }
+    ],
+    "explanation": "Dr. Vikram Rao demonstrates moderate research intelligence (score: 41.2/100). Top expertise areas: engineering, edge computing, sensor fusion, predictive maintenance, industrial iot. Publication strength: 40.7/100 based on 5 top-matched publications. Patent strength: 41.9/100 based on 5 top-matched patents (2010 Indian Patent Office data, status-weighted). Key matching keywords: time, techniques, computing, detection, engineering."
+  },
+  {
+    "researcher_id": "R002",
+    "name": "Dr. Rohan Mehta",
+    "institution": "IISc Bangalore",
+    "top_expertise_areas": [
+      "bioinformatics",
+      "genomic data",
+      "deep learning",
+      "healthcare ai",
+      "biotech",
+      "ai",
+      "data analytics",
+      "data"
+    ],
+    "publication_strength_score": 41.67,
+    "patent_strength_score": 0,
+    "overall_researcher_score": 25.0,
+    "matched_publications_sample": [
+      {
+        "title": "Network-based multi-omics integrative analysis methods in drug discovery: a systematic review",
+        "similarity": 0.3701,
+        "cited_by_count": 79
+      },
+      {
+        "title": "Artificial intelligence in cancer target identification and drug discovery",
+        "similarity": 0.3622,
+        "cited_by_count": 426
+      },
+      {
+        "title": "The rise of deep learning in drug discovery",
+        "similarity": 0.3509,
+        "cited_by_count": 1820
+      },
+      {
+        "title": "A Structure-Based Drug Discovery Paradigm",
+        "similarity": 0.3428,
+        "cited_by_count": 748
+      },
+      {
+        "title": "Artificial Intelligence and Machine Learning Technology Driven Modern Drug Discovery and Development",
+        "similarity": 0.3423,
+        "cited_by_count": 318
+      }
+    ],
+    "matched_patents_sample": [],
+    "explanation": "Dr. Rohan Mehta demonstrates emerging research intelligence (score: 25.0/100). Top expertise areas: bioinformatics, genomic data, deep learning, healthcare ai, biotech. Publication strength: 41.7/100 based on 5 top-matched publications. No significant patent matches found. Note: patent dataset is limited to 2010 Indian filings. Key matching keywords: data, learning, drug, disease."
+  }
+]

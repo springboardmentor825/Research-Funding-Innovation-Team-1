@@ -1,0 +1,86 @@
+2026-08-20 19:38:11 0 [Note] Using unique option prefix 'key_buffer' is error-prone and can break in the future. Please use the full name 'key_buffer_size' instead.
+2026-08-20 19:38:11 0 [Note] Starting MariaDB 10.4.32-MariaDB source revision c4143f909528e3fab0677a28631d10389354c491 as process 8256
+2026-08-20 19:38:11 0 [Note] mysqld.exe: Aria engine: starting recovery
+recovered pages: 0% 10% 23% 53% 67% 85% 100% (0.1 seconds); 
+2026-08-20 19:38:12 0 [Note] mysqld.exe: Aria engine: recovery done
+2026-08-20 19:38:12 0 [Note] InnoDB: Mutexes and rw_locks use Windows interlocked functions
+2026-08-20 19:38:12 0 [Note] InnoDB: Uses event mutexes
+2026-08-20 19:38:12 0 [Note] InnoDB: Compressed tables use zlib 1.3
+2026-08-20 19:38:12 0 [Note] InnoDB: Number of pools: 1
+2026-08-20 19:38:12 0 [Note] InnoDB: Using SSE2 crc32 instructions
+2026-08-20 19:38:12 0 [Note] InnoDB: Initializing buffer pool, total size = 16M, instances = 1, chunk size = 16M
+2026-08-20 19:38:12 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-08-20 19:38:12 0 [Note] InnoDB: 128 out of 128 rollback segments are active.
+2026-08-20 19:38:12 0 [Note] InnoDB: Creating shared tablespace for temporary tables
+2026-08-20 19:38:12 0 [Note] InnoDB: Setting file 'C:\xampp\mysql\data\ibtmp1' size to 12 MB. Physically writing the file full; Please wait ...
+2026-08-20 19:38:12 0 [Note] InnoDB: File 'C:\xampp\mysql\data\ibtmp1' size is now 12 MB.
+2026-08-20 19:38:12 0 [Note] InnoDB: Waiting for purge to start
+2026-08-20 19:38:12 0 [Note] InnoDB: 10.4.32 started; log sequence number 69654652; transaction id 965
+2026-08-20 19:38:12 0 [Note] InnoDB: Loading buffer pool(s) from C:\xampp\mysql\data\ib_buffer_pool
+2026-08-20 19:38:12 0 [Note] InnoDB: Buffer pool(s) load completed at 260820 19:38:12
+2026-08-20 19:38:12 0 [Note] Plugin 'FEEDBACK' is disabled.
+2026-08-20 19:38:12 0 [Note] Server socket created on IP: '::'.
+2026-08-20 19:38:12 0 [ERROR] mysqld.exe: Table '.\mysql\columns_priv' is marked as crashed and last (automatic?) repair failed
+2026-08-20 19:38:12 0 [Note] Reading of all Master_info entries succeeded
+2026-08-20 19:38:12 0 [Note] Added new Master_info '' to hash table
+2026-08-20 19:38:12 0 [Note] C:\xampp\mysql\bin\mysqld.exe: ready for connections.
+Version: '10.4.32-MariaDB'  socket: ''  port: 3306  mariadb.org binary distribution
+260820 19:40:27 [ERROR] mysqld got exception 0xc0000005 ;
+Sorry, we probably made a mistake, and this is a bug.
+
+Your assistance in bug reporting will enable us to fix this for the next release.
+To report this bug, see https://mariadb.com/kb/en/reporting-bugs
+
+We will try our best to scrape up some info that will hopefully help
+diagnose the problem, but since we have already crashed, 
+something is definitely wrong and this may fail.
+
+Server version: 10.4.32-MariaDB source revision: c4143f909528e3fab0677a28631d10389354c491
+key_buffer_size=16777216
+read_buffer_size=262144
+max_used_connections=3
+max_threads=65537
+thread_count=8
+It is possible that mysqld could use up to 
+key_buffer_size + (read_buffer_size + sort_buffer_size)*max_threads = 20304 K  bytes of memory
+Hope that's ok; if not, decrease some variables in the equation.
+
+Thread pointer: 0x19219b7efd8
+Attempting backtrace. You can use the following information to find out
+where mysqld died. If you see no messages after this, something went
+terribly wrong...
+
+mysqld.exe!my_hash_first()
+mysqld.exe!?name@User_table_tabular@@UEBAAEAUst_mysql_const_lex_string@@XZ()
+mysqld.exe!?store_pk@ACL_PROXY_USER@@SAHPEAUTABLE@@PEBUst_mysql_const_lex_string@@111@Z()
+mysqld.exe!?fill_effective_table_privileges@@YAXPEAVTHD@@PEAUst_grant_info@@PEBD2@Z()
+mysqld.exe!?prepare_security@TABLE_LIST@@QEAA_NPEAVTHD@@@Z()
+mysqld.exe!?mysql_make_view@@YA_NPEAVTHD@@PEAUTABLE_SHARE@@PEAUTABLE_LIST@@_N@Z()
+mysqld.exe!?open_table@@YA_NPEAVTHD@@PEAUTABLE_LIST@@PEAVOpen_table_context@@@Z()
+mysqld.exe!?open_and_lock_tables@@YA_NPEAVTHD@@AEBUDDL_options_st@@PEAUTABLE_LIST@@_NIPEAVPrelocking_strategy@@@Z()
+mysqld.exe!?open_tables@@YA_NPEAVTHD@@AEBUDDL_options_st@@PEAPEAUTABLE_LIST@@PEAIIPEAVPrelocking_strategy@@@Z()
+mysqld.exe!?open_and_lock_tables@@YA_NPEAVTHD@@AEBUDDL_options_st@@PEAUTABLE_LIST@@_NIPEAVPrelocking_strategy@@@Z()
+mysqld.exe!?execute_init_command@@YAXPEAVTHD@@PEAUst_mysql_lex_string@@PEAUst_mysql_rwlock@@@Z()
+mysqld.exe!?mysql_execute_command@@YAHPEAVTHD@@@Z()
+mysqld.exe!?mysql_parse@@YAXPEAVTHD@@PEADIPEAVParser_state@@_N3@Z()
+mysqld.exe!?dispatch_command@@YA_NW4enum_server_command@@PEAVTHD@@PEADI_N3@Z()
+mysqld.exe!?do_command@@YA_NPEAVTHD@@@Z()
+mysqld.exe!?pool_of_threads_scheduler@@YAXPEAUscheduler_functions@@PEAKPEAI@Z()
+mysqld.exe!?tp_callback@@YAXPEAUTP_connection@@@Z()
+ntdll.dll!RtlSetThreadSubProcessTag()
+ntdll.dll!RtlSetThreadSubProcessTag()
+KERNEL32.DLL!BaseThreadInitThunk()
+ntdll.dll!RtlUserThreadStart()
+
+Trying to get some variables.
+Some pointers may be invalid and cause the dump to abort.
+Query (0x19219b88340): SELECT 1 FROM mysql.user LIMIT 1
+Connection ID (thread ID): 10
+Status: NOT_KILLED
+
+Optimizer switch: index_merge=on,index_merge_union=on,index_merge_sort_union=on,index_merge_intersection=on,index_merge_sort_intersection=off,engine_condition_pushdown=off,index_condition_pushdown=on,derived_merge=on,derived_with_keys=on,firstmatch=on,loosescan=on,materialization=on,in_to_exists=on,semijoin=on,partial_match_rowid_merge=on,partial_match_table_scan=on,subquery_cache=on,mrr=off,mrr_cost_based=off,mrr_sort_keys=off,outer_join_with_cache=on,semijoin_with_cache=on,join_cache_incremental=on,join_cache_hashed=on,join_cache_bka=on,optimize_join_buffer_size=on,table_elimination=on,extended_keys=on,exists_to_in=on,orderby_uses_equalities=on,condition_pushdown_for_derived=on,split_materialized=on,condition_pushdown_for_subquery=on,rowid_filter=on,condition_pushdown_from_having=on
+
+The manual page at https://mariadb.com/kb/en/how-to-produce-a-full-stack-trace-for-mariadbd/ contains
+information that should help you find out what is causing the crash.
+Writing a core file at C:\xampp\mysql\data
+Minidump written to C:\xampp\mysql\data\mysqld.dmp
