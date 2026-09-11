@@ -1,49 +1,85 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import AppLayout from '../components/layout/AppLayout'
 import FundingRecommendationCard from '../components/dashboard/FundingRecommendationCard'
 import FundingDetailModal from '../components/dashboard/FundingDetailModal'
 import { useAuth } from '../context/AuthContext'
 import fundingService from '../services/funding'
-import { Search, Filter, SlidersHorizontal, RefreshCw } from 'lucide-react'
+import { Search, SlidersHorizontal, RefreshCw, AlertCircle } from 'lucide-react'
+
+const DAY = 24 * 60 * 60 * 1000
+const domainsFrom = (opps) => {
+  const set = new Set()
+  opps.forEach(o => {
+    String(o.research_domains || '').split(';').map(s => s.trim()).filter(Boolean).forEach(d => set.add(d))
+  })
+  return [...set].sort()
+}
+const deadlineStatus = (deadline) => {
+  const d = new Date(deadline)
+  if (isNaN(d)) return 'open'
+  if (d < new Date()) return 'expired'
+  if (d <= new Date(Date.now() + 60 * DAY)) return 'closing_soon'
+  return 'open'
+}
 
 function Funding() {
   const { user } = useAuth()
   const [opportunities, setOpportunities] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [selectedRec, setSelectedRec] = useState(null)
   const [savedIds, setSavedIds] = useState(new Set())
-  
+
   // Filter States
   const [searchQuery, setSearchQuery] = useState('')
   const [domainFilter, setDomainFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('open')
+  const [statusFilter, setStatusFilter] = useState('')
   const [sortBy, setSortBy] = useState('score_desc')
 
-  const fetchOpportunities = async () => {
-    setLoading(true)
-    try {
-      const filters = {}
-      if (domainFilter) filters.domain = domainFilter
-      if (statusFilter) filters.status = statusFilter
-      if (searchQuery) filters.query = searchQuery
+  const userId = user?.id || 1
 
-      const data = await fundingService.searchFunding(filters)
-      setOpportunities(data || [])
+  const fetchOpportunities = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      // Ranked recommendations give real match scores + reasons for this user
+      const [recs, directory] = await Promise.all([
+        fundingService.getRecommendations(userId, 50),
+        fundingService.searchFunding({})
+      ])
+      const recMap = new Map()
+      (recs || []).forEach(r => recMap.set(r.funding_id ?? r.id, r))
+
+      const combined = (Array.isArray(directory) ? directory : [])
+        .map(opp => {
+          const rec = recMap.get(opp.id)
+          return {
+            ...opp,
+            funding_id: opp.id,
+            match_score: rec?.match_score ?? opp.semantic_fit ?? 0,
+            reason: rec?.reason || (opp.semantic_fit ? `Match score ${opp.semantic_fit}% based on broad field alignment.` : undefined),
+            matched_signals: rec?.matched_signals || []
+          }
+        })
+        .filter(o => deadlineStatus(o.deadline) !== 'expired')
+
+      setOpportunities(combined)
     } catch (err) {
-      console.error('Search funding API error:', err)
+      console.error('Funding load error:', err)
+      setError('Failed to load funding opportunities. Is the backend running?')
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId])
 
   useEffect(() => {
     fetchOpportunities()
-  }, [domainFilter, statusFilter])
+  }, [fetchOpportunities])
 
   const handleFeedback = async (rec, feedbackType) => {
     try {
       const oppId = rec.funding_id || rec.id
-      await fundingService.sendFeedback(user?.id || 16, oppId, feedbackType)
+      await fundingService.sendFeedback(userId, oppId, feedbackType)
       if (feedbackType === 'saved') {
         setSavedIds(prev => new Set(prev).add(oppId))
       }
@@ -52,17 +88,26 @@ function Funding() {
     }
   }
 
-  // Local sorting & search text filtering
+  const domains = domainsFrom(opportunities)
+
+  // Client-side filtering & sorting
   const processedOpps = [...opportunities]
     .filter(o => {
-      if (!searchQuery) return true
-      const q = searchQuery.toLowerCase()
-      return (
-        (o.title && o.title.toLowerCase().includes(q)) ||
-        (o.funder && o.funder.toLowerCase().includes(q)) ||
-        (o.description && o.description.toLowerCase().includes(q)) ||
-        (o.research_domains && o.research_domains.toLowerCase().includes(q))
-      )
+      if (domainFilter) {
+        const list = String(o.research_domains || '').split(';').map(s => s.trim())
+        if (!list.includes(domainFilter)) return false
+      }
+      if (statusFilter && deadlineStatus(o.deadline) !== statusFilter) return false
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase()
+        return (
+          (o.title && o.title.toLowerCase().includes(q)) ||
+          (o.funder && o.funder.toLowerCase().includes(q)) ||
+          (o.description && o.description.toLowerCase().includes(q)) ||
+          (o.research_domains && o.research_domains.toLowerCase().includes(q))
+        )
+      }
+      return true
     })
     .sort((a, b) => {
       if (sortBy === 'score_desc') return (b.match_score || 0) - (a.match_score || 0)
@@ -73,16 +118,16 @@ function Funding() {
 
   return (
     <AppLayout
-      title="Funding Opportunities Directory"
-      subtitle="Explore institutional, corporate, and federal research grants"
+      title="Funding Opportunities"
+      subtitle="AI-ranked research grants matched to your profile, publications & patents"
       searchValue={searchQuery}
       onSearchChange={setSearchQuery}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        
+
         {/* Filter Controls Bar */}
         <div className="ai-card" style={{ padding: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
-          
+
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.85rem', alignItems: 'center', flexGrow: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-cyan-light)' }}>
               <SlidersHorizontal size={16} /> Filters:
@@ -93,14 +138,10 @@ function Funding() {
               value={domainFilter}
               onChange={(e) => setDomainFilter(e.target.value)}
               className="ai-select"
-              style={{ width: '180px', height: '38px', fontSize: '0.85rem' }}
+              style={{ width: '200px', height: '38px', fontSize: '0.85rem' }}
             >
               <option value="">All Domains</option>
-              <option value="Artificial Intelligence">Artificial Intelligence</option>
-              <option value="Computer Science">Computer Science</option>
-              <option value="Quantum Computing">Quantum Computing</option>
-              <option value="Biotechnology">Biotechnology</option>
-              <option value="Renewable Energy">Renewable Energy</option>
+              {domains.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
 
             {/* Status Selector */}
@@ -108,12 +149,11 @@ function Funding() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="ai-select"
-              style={{ width: '140px', height: '38px', fontSize: '0.85rem' }}
+              style={{ width: '150px', height: '38px', fontSize: '0.85rem' }}
             >
               <option value="">All Statuses</option>
               <option value="open">Open</option>
               <option value="closing_soon">Closing Soon</option>
-              <option value="active">Active</option>
             </select>
           </div>
 
@@ -124,14 +164,14 @@ function Funding() {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="ai-select"
-              style={{ width: '160px', height: '38px', fontSize: '0.85rem' }}
+              style={{ width: '170px', height: '38px', fontSize: '0.85rem' }}
             >
               <option value="score_desc">Match Score (High → Low)</option>
               <option value="score_asc">Match Score (Low → High)</option>
               <option value="deadline">Deadline Urgency</option>
             </select>
 
-            <button onClick={fetchOpportunities} className="btn-ai-secondary" style={{ height: '38px', padding: '0 0.85rem' }}>
+            <button onClick={fetchOpportunities} className="btn-ai-secondary" style={{ height: '38px', padding: '0 0.85rem' }} title="Refresh list">
               <RefreshCw size={14} />
             </button>
           </div>
@@ -141,7 +181,13 @@ function Funding() {
         {/* Opportunities List */}
         {loading ? (
           <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-            Searching database grants...
+            Loading grants & ranking matches...
+          </div>
+        ) : error ? (
+          <div className="ai-card" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
+            <AlertCircle size={36} color="#EF4444" style={{ marginBottom: '0.75rem' }} />
+            <h3 style={{ color: '#F8FAFC', marginBottom: '0.25rem' }}>Something went wrong</h3>
+            <p style={{ fontSize: '0.875rem' }}>{error}</p>
           </div>
         ) : processedOpps.length === 0 ? (
           <div className="ai-card" style={{ padding: '3rem 2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>

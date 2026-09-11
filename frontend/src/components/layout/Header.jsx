@@ -61,17 +61,19 @@ function Header({ title, subtitle, onSearchChange, searchValue, setMobileOpen })
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
         {/* Global Search Bar */}
-        <div style={{ position: 'relative', width: '240px' }} className="header-search">
-          <Search size={16} color="#94A3B8" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
-          <input
-            type="text"
-            placeholder="Search opportunities..."
-            value={searchValue || ''}
-            onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
-            className="ai-input"
-            style={{ paddingLeft: '2.5rem', fontSize: '0.85rem', height: '38px' }}
-          />
-        </div>
+        {onSearchChange && (
+          <div style={{ position: 'relative', width: '240px' }} className="header-search">
+            <Search size={16} color="#94A3B8" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
+            <input
+              type="text"
+              placeholder="Search opportunities..."
+              value={searchValue || ''}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="ai-input"
+              style={{ paddingLeft: '2.5rem', fontSize: '0.85rem', height: '38px' }}
+            />
+          </div>
+        )}
 
         {/* Notification Icon */}
         <button 

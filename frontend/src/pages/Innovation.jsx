@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Navbar from '../components/common/Navbar'
+import AppLayout from '../components/layout/AppLayout'
 import patentAnalyticsService from '../services/patentAnalytics'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -63,14 +63,10 @@ function Innovation() {
     .slice(0, 6)
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-gradient)' }}>
-      <Navbar />
-      <div style={{ padding: '0 2rem 2rem', maxWidth: '1400px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Patent & Innovation Intelligence</h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Analyze patent activity, technology trends, and innovation opportunities</p>
-          </div>
+    <AppLayout title="Patent & Innovation Intelligence" subtitle="Analyze patent activity, technology trends, and innovation opportunities">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1400px', margin: '0 auto' }}>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={loadAll} className="btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}>Refresh</button>
         </div>
 
@@ -226,7 +222,7 @@ function Innovation() {
           </>
         )}
       </div>
-    </div>
+    </AppLayout>
   )
 }
 

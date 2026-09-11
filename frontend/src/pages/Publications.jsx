@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Navbar from '../components/common/Navbar'
+import AppLayout from '../components/layout/AppLayout'
 import publicationsService from '../services/publications'
 
 function Publications() {
@@ -96,19 +96,14 @@ function Publications() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--dark-bg)' }}>
-      <Navbar />
-      <div style={{ padding: '0 2rem 2rem 2rem', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
-        
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <div>
-            <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>Publications Registry</h1>
-            <p style={{ color: 'var(--text-secondary)' }}>Manage your academic journals, papers, and scientific records.</p>
-          </div>
+    <AppLayout title="Publications Registry" subtitle="Manage your academic journals, papers, and scientific records.">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           {!isEditing && (
             <button className="btn-primary" onClick={() => setIsEditing(true)}>Add Paper</button>
           )}
-        </header>
+        </div>
 
         {success && (
           <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
@@ -200,7 +195,7 @@ function Publications() {
         )}
 
       </div>
-    </div>
+    </AppLayout>
   )
 }
 

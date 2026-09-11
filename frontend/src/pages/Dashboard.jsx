@@ -7,7 +7,7 @@ import {
   BarChart, Bar, Cell,
   PieChart, Pie, Legend
 } from 'recharts'
-import Navbar from '../components/common/Navbar'
+import AppLayout from '../components/layout/AppLayout'
 import { useAuth } from '../context/AuthContext'
 import publicationsService from '../services/publications'
 import patentsService from '../services/patents'
@@ -112,19 +112,11 @@ function Dashboard() {
   }, [fetchAnalytics])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--dark-bg)' }}>
-      <Navbar />
-      <div style={{ padding: '0 2rem 2rem 2rem', display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
-
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>
-              Intelligence Dashboard
-            </h1>
-            <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Welcome, {user?.full_name || 'Researcher'}. Access your portfolio, funding details, and intelligence modules.</p>
-          </div>
-          <span className="badge badge-blue">{user?.role || 'User'}</span>
-        </header>
+    <AppLayout
+      title="Intelligence Dashboard"
+      subtitle={`Welcome, ${user?.full_name || 'Researcher'}. Access your portfolio, funding details, and intelligence modules.`}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
 
         {/* Overview Stats Cards */}
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
@@ -328,7 +320,7 @@ function Dashboard() {
         </section>
 
       </div>
-    </div>
+    </AppLayout>
   )
 }
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Navbar from '../components/common/Navbar'
+import AppLayout from '../components/layout/AppLayout'
 import { useAuth } from '../context/AuthContext'
 import profileService from '../services/profile'
 
@@ -102,24 +102,17 @@ function Profile() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--dark-bg)' }}>
-        <Navbar />
-        <div style={{ display: 'flex', flexGrow: 1, justifyContent: 'center', alignItems: 'center', color: 'var(--primary-color)', fontSize: '1.25rem', fontWeight: 600 }}>
+      <AppLayout title="Research Profile">
+        <div style={{ display: 'flex', flexGrow: 1, justifyContent: 'center', alignItems: 'center', color: 'var(--primary-color)', fontSize: '1.25rem', fontWeight: 600, minHeight: '45vh' }}>
           Loading Research Profile Context...
         </div>
-      </div>
+      </AppLayout>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--dark-bg)' }}>
-      <Navbar />
-      <div style={{ padding: '0 2rem 2rem 2rem', maxSelfAlign: 'center', maxWidth: '800px', width: '100%', margin: '0 auto' }}>
-        
-        <header style={{ marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--primary-color)', margin: 0 }}>Research Profile</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Manage your professional details, university designation, and research fields.</p>
-        </header>
+    <AppLayout title="Research Profile" subtitle="Manage your professional details, university designation, and research fields.">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '800px', width: '100%', margin: '0 auto' }}>
 
         {success && (
           <div style={{ padding: '0.75rem 1rem', mdBorderRadius: '8px', borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', fontWeight: 500, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
@@ -249,7 +242,7 @@ function Profile() {
         )}
 
       </div>
-    </div>
+    </AppLayout>
   )
 }
 

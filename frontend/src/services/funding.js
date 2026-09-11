@@ -25,12 +25,21 @@ const fundingService = {
 
   // Search/Filter funding opportunities
   searchFunding: async (filters = {}) => {
+    const params = {
+      keyword: filters.query || filters.keyword,
+      domain: filters.domain,
+      status: filters.status,
+      technology_area: filters.technology_area,
+      funder: filters.funder,
+      minimum_score: filters.minimum_score
+    }
+    Object.keys(params).forEach(k => params[k] === undefined && delete params[k])
     try {
-      const response = await api.get('/funding/search', { params: filters })
+      const response = await api.get('/funding/search', { params })
       return Array.isArray(response.data) ? response.data : []
     } catch (err) {
       try {
-        const response = await api.get('/v1/funding/search', { params: filters })
+        const response = await api.get('/v1/funding/search', { params })
         return Array.isArray(response.data) ? response.data : []
       } catch (innerErr) {
         console.error('searchFunding service error:', innerErr)

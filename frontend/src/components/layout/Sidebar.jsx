@@ -57,7 +57,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
           left: 0,
           zIndex: 50,
           transition: 'transform 0.3s ease',
-          transform: mobileOpen ? 'translateX(0)' : 'translateX(0)', // responsive handled via media queries
+          transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
         }}
         className="sidebar-responsive"
       >
@@ -84,10 +84,10 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
             </div>
             <div>
               <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                AI Fund
+                Infera
               </div>
               <div style={{ fontSize: '0.725rem', color: 'var(--accent-cyan-light)', fontWeight: 500 }}>
-                Intelligence Platform
+                Research Funding &amp; Innovation Platform
               </div>
             </div>
           </Link>

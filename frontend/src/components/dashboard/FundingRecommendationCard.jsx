@@ -3,21 +3,9 @@ import MatchScoreBadge from './MatchScoreBadge'
 import { Calendar, DollarSign, Building2, ChevronRight, Sparkles, Bookmark, Check } from 'lucide-react'
 
 function FundingRecommendationCard({ recommendation, onViewDetails, onFeedback, isSaved }) {
-  const {
-    id,
-    funding_id,
-    title,
-    funder,
-    description,
-    match_score,
-    deadline,
-    amount,
-    funding_amount,
-    reason,
-    matched_signals
-  } = recommendation
+  const { funding_id, title, funder, description, match_score, deadline, amount, funding_amount, amount_range, reason, matched_signals } = recommendation
 
-  const formattedAmount = amount || funding_amount || '$50,000 – $250,000'
+  const formattedAmount = amount || funding_amount || amount_range || '$50,000 – $250,000'
   const formattedDeadline = deadline || '31 Dec 2026'
 
   return (

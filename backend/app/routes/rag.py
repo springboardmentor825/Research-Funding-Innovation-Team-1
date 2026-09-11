@@ -51,8 +51,8 @@ def query_database_context(db: Session, query_text: str) -> Tuple[List[str], Lis
             fo_query = fo_query.filter(or_(*filters))
         
         fos = fo_query.filter(FundingOpportunity.status == "open").limit(5).all()
-        # If explicit funding query and no specific word filters matched, return open opportunities
-        if not fos and is_funding_query and not words:
+        # If explicit funding query found no keyword-specific matches, list active grants
+        if not fos and is_funding_query:
             fos = db.query(FundingOpportunity).filter(FundingOpportunity.status == "open").limit(5).all()
 
         for fo in fos:
