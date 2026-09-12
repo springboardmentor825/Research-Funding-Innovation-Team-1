@@ -1,0 +1,12 @@
+.git
+.mysql-dev
+**/__pycache__
+**/*.pyc
+backend/.venv
+backend/.env
+backend/uvicorn*.log
+backend/test_out.txt
+frontend/node_modules
+frontend/dist
+frontend/.env
+*.log

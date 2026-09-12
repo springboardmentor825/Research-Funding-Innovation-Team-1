@@ -12,6 +12,8 @@ import { useAuth } from '../context/AuthContext'
 import publicationsService from '../services/publications'
 import patentsService from '../services/patents'
 import analyticsService from '../services/analytics'
+import patentAnalyticsService from '../services/patentAnalytics'
+import fundingService from '../services/funding'
 
 const CHART_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#64748b']
 
@@ -62,6 +64,50 @@ function Dashboard() {
   const [retraction, setRetraction] = useState([])
   const [analyticsLoading, setAnalyticsLoading] = useState(true)
   const [analyticsError, setAnalyticsError] = useState(null)
+
+  const [landscape, setLandscape] = useState(null)
+
+  const [applications, setApplications] = useState([])
+  const [appsLoading, setAppsLoading] = useState(true)
+
+  const fetchApplications = useCallback(async () => {
+    setAppsLoading(true)
+    try {
+      const apps = await fundingService.getApplications()
+      setApplications(apps)
+    } catch (err) {
+      console.error('Failed to load applications:', err)
+    } finally {
+      setAppsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchApplications()
+  }, [fetchApplications])
+
+  const withdrawApplication = async (applicationId) => {
+    if (!window.confirm('Withdraw this application? This cannot be undone.')) return
+    try {
+      await fundingService.withdrawApplication(applicationId)
+      setApplications(prev => prev.map(a => (a.id === applicationId ? { ...a, status: 'withdrawn' } : a)))
+    } catch (err) {
+      console.error('Failed to withdraw application:', err)
+      window.alert('Could not withdraw the application. Please try again.')
+    }
+  }
+
+  useEffect(() => {
+    const fetchLandscape = async () => {
+      try {
+        const data = await patentAnalyticsService.researchLandscape()
+        setLandscape(data)
+      } catch (err) {
+        console.error('Failed to load innovation landscape:', err)
+      }
+    }
+    fetchLandscape()
+  }, [])
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -174,6 +220,101 @@ function Dashboard() {
           </div>
 
         </section>
+
+        {/* My Applications */}
+        <section className="glass-card" style={{ padding: '2rem' }}>
+          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--accent-emerald)', margin: 0 }}>My Applications</h2>
+              <p style={{ color: 'var(--text-secondary)', margin: '0.25rem 0 0 0', fontSize: '0.9rem' }}>
+                Submitted grant applications and their current status.
+              </p>
+            </div>
+            <button
+              className="btn-secondary"
+              style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+              onClick={fetchApplications}
+              disabled={appsLoading}
+            >
+              {appsLoading ? 'Refreshing…' : 'Refresh'}
+            </button>
+          </header>
+
+          {appsLoading ? (
+            <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>Loading…</p>
+          ) : applications.length === 0 ? (
+            <p style={{ color: 'var(--text-secondary)', marginTop: '1rem', fontSize: '0.9rem' }}>
+              No applications yet. Go to <strong>Funding</strong> or <strong>Recommendations</strong> and click "Apply Now" on an opportunity.
+            </p>
+          ) : (
+            <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {applications.map(app => (
+                <div key={app.id} style={{
+                  display: 'flex', alignItems: 'center', gap: '1rem',
+                  padding: '1rem 1.25rem', borderRadius: 12,
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)'
+                }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {app.title}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
+                      {app.funder} · {app.amount_range} · Submitted {app.submitted_at ? new Date(app.submitted_at).toLocaleDateString() : '—'}
+                    </div>
+                  </div>
+                  <span className={`badge ${app.status === 'withdrawn' ? 'badge-red' : 'badge-green'}`} style={{ whiteSpace: 'nowrap', textTransform: 'capitalize' }}>
+                    {app.status}
+                  </span>
+                  {app.status === 'submitted' && (
+                    <button
+                      onClick={() => withdrawApplication(app.id)}
+                      style={{
+                        background: 'rgba(30,41,59,0.8)', border: '1px solid var(--border-color)',
+                        color: '#ef4444', padding: '0.4rem 0.85rem', borderRadius: 8,
+                        cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap'
+                      }}
+                    >
+                      Withdraw
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Innovation Intelligence (patent + corpus landscape) */}
+        {landscape && (
+          <section className="glass-card" style={{ padding: '2rem' }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--secondary-color)', margin: 0 }}>Innovation Intelligence</h2>
+                <p style={{ color: 'var(--text-secondary)', margin: '0.25rem 0 0 0', fontSize: '0.9rem' }}>
+                  {landscape.open_funding_count || 0} open funding tracks across {landscape.hot_domains?.length || 0} active domains in a {fmt(landscape.total_publications)}-publication corpus.
+                </p>
+              </div>
+              <Link to="/innovation" className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Open Innovation Hub</Link>
+            </header>
+
+            {landscape.hot_domains?.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginTop: '1.25rem' }}>
+                {landscape.hot_domains.slice(0, 4).map((h, i) => (
+                  <div key={i} style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>{h.domain}</span>
+                      <span className="badge badge-blue" style={{ fontSize: '0.7rem' }}>{h.avg_semantic_fit}% fit</span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      <strong style={{ color: 'var(--primary-color)' }}>{fmt(h.publication_count)}</strong> publications · <strong>{h.funding_count}</strong> funding
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-secondary)', marginTop: '1rem', fontSize: '0.875rem' }}>Landscape data loading…</p>
+            )}
+          </section>
+        )}
 
         {/* Research Intelligence Dashboard (global OpenAlex corpus) */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

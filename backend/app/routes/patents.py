@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select, extract
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import User, Patent, ResearchPublication, ResearchPublicationConcept
+from app.models import User, Patent, ResearchPublication, ResearchPublicationConcept, FundingOpportunity
 from app.schemas import PatentCreate, PatentUpdate, Patent as PatentSchema
 from app.auth import get_current_user
 
@@ -219,3 +219,67 @@ def innovation_opportunities(
                 })
 
     return sorted(opportunities, key=lambda x: x["gap_score"], reverse=True)
+
+
+@router.get("/analysis/research-landscape")
+def research_landscape(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Corpus-driven innovation landscape tying global publications to funding."""
+    trend_rows = db.execute(
+        select(
+            ResearchPublication.publication_year.label("year"),
+            func.count().label("count"),
+        )
+        .where(ResearchPublication.publication_year.is_not(None))
+        .group_by(ResearchPublication.publication_year)
+        .order_by(ResearchPublication.publication_year.desc())
+        .limit(10)
+    ).all()
+
+    topic_rows = db.execute(
+        select(ResearchPublication.primary_topic, func.count().label("count"))
+        .where(ResearchPublication.primary_topic.is_not(None))
+        .group_by(ResearchPublication.primary_topic)
+        .order_by(func.count().desc())
+        .limit(8)
+    ).all()
+
+    funding_rows = db.execute(
+        select(FundingOpportunity).where(FundingOpportunity.status == "open")
+    ).scalars().all()
+
+    domain_stats = defaultdict(lambda: {"funding_count": 0, "fit_sum": 0.0})
+    for opp in funding_rows:
+        for d in (opp.research_domains or "").split(";"):
+            d = d.strip()
+            if not d:
+                continue
+            domain_stats[d]["funding_count"] += 1
+            domain_stats[d]["fit_sum"] += opp.semantic_fit or 0
+
+    hot_domains = []
+    for domain, info in domain_stats.items():
+        pub_count = db.execute(
+            select(func.count()).select_from(ResearchPublication)
+            .where(func.lower(ResearchPublication.primary_topic).like(f"%{domain.lower()}%"))
+        ).scalar() or 0
+        hot_domains.append({
+            "domain": domain,
+            "publication_count": pub_count,
+            "funding_count": info["funding_count"],
+            "avg_semantic_fit": round(info["fit_sum"] / info["funding_count"], 1) if info["funding_count"] else 0,
+        })
+    hot_domains.sort(key=lambda x: (x["publication_count"], x["avg_semantic_fit"]), reverse=True)
+
+    total_publications = db.execute(select(func.count()).select_from(ResearchPublication)).scalar() or 0
+    open_funding = len(funding_rows)
+
+    return {
+        "total_publications": total_publications,
+        "open_funding_count": open_funding,
+        "publication_trends": [{"year": int(y), "count": c} for y, c in reversed(trend_rows)],
+        "top_primary_topics": [{"name": name, "count": c} for name, c in topic_rows],
+        "hot_domains": hot_domains[:10],
+    }

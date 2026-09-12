@@ -21,6 +21,7 @@ class User(Base):
     publications = relationship("Publication", back_populates="user", cascade="all, delete-orphan")
     patents = relationship("Patent", back_populates="user", cascade="all, delete-orphan")
     recommendations = relationship("FundingRecommendation", back_populates="user", cascade="all, delete-orphan")
+    applications = relationship("FundingApplication", back_populates="user", cascade="all, delete-orphan")
 
 class ResearchProfile(Base):
     __tablename__ = "Research_Profile"
@@ -84,6 +85,7 @@ class FundingOpportunity(Base):
     status = Column(String(50), nullable=False, default="open")
 
     recommendations = relationship("FundingRecommendation", back_populates="funding", cascade="all, delete-orphan")
+    applications = relationship("FundingApplication", back_populates="funding", cascade="all, delete-orphan")
 
 class FundingRecommendation(Base):
     __tablename__ = "funding_recommendations"
@@ -99,6 +101,22 @@ class FundingRecommendation(Base):
 
     user = relationship("User", back_populates="recommendations")
     funding = relationship("FundingOpportunity", back_populates="recommendations")
+
+class FundingApplication(Base):
+    """A real grant application submitted by a researcher against a funding opportunity."""
+    __tablename__ = "funding_applications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("Users.id", ondelete="CASCADE"), nullable=False, index=True)
+    funding_id = Column(Integer, ForeignKey("funding_opportunities.id", ondelete="CASCADE"), nullable=False, index=True)
+    research_statement = Column(Text, nullable=False)
+    budget_ask = Column(String(255), nullable=True)
+    status = Column(String(50), nullable=False, default="submitted")
+    submitted_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="applications")
+    funding = relationship("FundingOpportunity", back_populates="applications")
 
 class ResearchPublication(Base):
     """Global OpenAlex scholarly corpus (50K records), independent of user accounts."""

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routes import auth, users, publications, patents, analytics, funding, rag
+from app.routes import auth, users, publications, patents, analytics, funding, rag, applications
 import os
 from dotenv import load_dotenv
 
@@ -18,12 +18,13 @@ app = FastAPI(
 )
 
 # Setup CORS Origins list
-# Fallback to local react client
-ALLOWED_ORIGINS = [
+# Fallback to local react client; override with CORS_ORIGINS (comma-separated) in deployments.
+default_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000"
 ]
+ALLOWED_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()] or default_origins
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,6 +44,10 @@ app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytic
 # Funding & Recommendation routes
 app.include_router(funding.router, prefix="/api/funding", tags=["Funding & Recommendations"])
 app.include_router(funding.router, prefix="/api/v1/funding", tags=["Funding & Recommendations"])
+
+# Grant Applications routes
+app.include_router(applications.router, prefix="/api/applications", tags=["Grant Applications"])
+app.include_router(applications.router, prefix="/api/v1/applications", tags=["Grant Applications"])
 
 # Hybrid RAG routes
 app.include_router(rag.router, prefix="/api/rag", tags=["Hybrid RAG"])

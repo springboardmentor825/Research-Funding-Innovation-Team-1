@@ -20,6 +20,10 @@ const patentAnalyticsService = {
   opportunities: async () => {
     const response = await api.get('/patents/analysis/opportunities')
     return response.data
+  },
+  researchLandscape: async () => {
+    const response = await api.get('/patents/analysis/research-landscape')
+    return response.data
   }
 }
 

@@ -1,6 +1,7 @@
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
-from app.models import User, ResearchProfile, Publication, Patent
+from sqlalchemy import func, select
+from app.models import User, ResearchProfile, Publication, Patent, ResearchPublication, ResearchPublicationConcept
 
 def get_researcher_profile(db: Session, user_id: int) -> Optional[ResearchProfile]:
     """Retrieve ResearchProfile for given user_id."""
@@ -51,32 +52,30 @@ def build_researcher_features(db: Session, user_id: int) -> Dict[str, Any]:
             patent_domains.append(pat.title.strip())
 
     # 3. Handle research profile data
+    needs_profile = (profile is None) or (not profile.research_domain and not profile.technology_area)
     if profile:
         domain = profile.research_domain.strip() if profile.research_domain else "Unspecified"
         tech_area = profile.technology_area.strip() if profile.technology_area else "Unspecified"
         interests = _clean_list(profile.research_interests)
         keywords = _clean_list(profile.keywords)
     else:
-        # Fallback if profile row does not exist in DB: infer from publications & patents if available
-        domain = "Unspecified"
-        tech_area = "Unspecified"
-        
-        # If patent domains exist, use the most common patent domain as tech_area
-        if patent_domains:
-            tech_area = patent_domains[0]
-            domain = patent_domains[0]
-        
-        # Infer interests and keywords from publication titles
-        interests = []
-        keywords = []
-        for pub_title in pub_topics:
-            words = [w.strip() for w in pub_title.split() if len(w) > 3]
-            for w in words:
-                if w not in keywords:
-                    keywords.append(w)
+        # Fallback: anchor on broad research concepts from the global corpus (e.g., Artificial intelligence)
+        concept_rows = db.execute(
+            select(ResearchPublicationConcept.concept_name, func.count().label("cnt"))
+            .where(ResearchPublicationConcept.concept_name.is_not(None))
+            .group_by(ResearchPublicationConcept.concept_name)
+            .order_by(func.count().desc())
+            .limit(8)
+        ).all()
+        concepts = [c for c, _ in concept_rows]
+        domain = concepts[0] if concepts else "Unspecified"
+        tech_area = concepts[1] if len(concepts) > 1 else domain
+        keywords = concepts
+        interests = concepts[:4]
 
     return {
         "user_id": user_id,
+        "needs_profile": needs_profile,
         "research_domain": domain,
         "technology_area": tech_area,
         "research_interests": interests,

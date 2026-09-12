@@ -65,6 +65,43 @@ const fundingService = {
       })
       return response.data
     }
+  },
+
+  // Submit a grant application (requires auth token)
+  submitApplication: async (fundingId, researchStatement, budgetAsk) => {
+    try {
+      const response = await api.post('/applications', {
+        funding_id: fundingId,
+        research_statement: researchStatement,
+        budget_ask: budgetAsk || null
+      })
+      return response.data
+    } catch (err) {
+      console.error('submitApplication service error:', err)
+      throw err
+    }
+  },
+
+  // List the current user's applications
+  getApplications: async () => {
+    try {
+      const response = await api.get('/applications')
+      return Array.isArray(response.data) ? response.data : []
+    } catch (err) {
+      console.error('getApplications service error:', err)
+      return []
+    }
+  },
+
+  // Withdraw an application
+  withdrawApplication: async (applicationId) => {
+    try {
+      const response = await api.post(`/applications/${applicationId}/withdraw`)
+      return response.data
+    } catch (err) {
+      console.error('withdrawApplication service error:', err)
+      throw err
+    }
   }
 }
 

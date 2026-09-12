@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import AppLayout from '../components/layout/AppLayout'
 import FundingRecommendationCard from '../components/dashboard/FundingRecommendationCard'
 import FundingDetailModal from '../components/dashboard/FundingDetailModal'
 import { useAuth } from '../context/AuthContext'
 import fundingService from '../services/funding'
-import { Sparkles, Filter, Bookmark, Clock, Flame, Search } from 'lucide-react'
+import { Sparkles, Filter, Bookmark, Clock, Flame, Search, AlertCircle } from 'lucide-react'
 
 function Recommendations() {
   const { user } = useAuth()
@@ -14,6 +15,7 @@ function Recommendations() {
   const [selectedRec, setSelectedRec] = useState(null)
   const [savedIds, setSavedIds] = useState(new Set())
   const [searchQuery, setSearchQuery] = useState('')
+  const [needsProfile, setNeedsProfile] = useState(false)
 
   const userId = user?.id || 16
 
@@ -23,6 +25,7 @@ function Recommendations() {
       const data = await fundingService.getRecommendations(userId, 20)
       const recsList = Array.isArray(data) ? data : (data?.recommendations || [])
       setRecommendations(recsList)
+      setNeedsProfile(!Array.isArray(data) && !!data?.needs_profile)
     } catch (err) {
       console.error('Recommendations API error:', err)
     } finally {
@@ -75,7 +78,10 @@ function Recommendations() {
       return savedIds.has(r.funding_id || r.id)
     }
     if (activeTab === 'closing') {
-      return r.deadline_status === 'closing_soon' || (r.deadline && r.deadline.includes('2026'))
+      const deadline = r.deadline ? new Date(r.deadline) : null
+      if (!deadline || isNaN(deadline)) return false
+      const within = deadline - Date.now()
+      return within > 0 && within <= 90 * 24 * 60 * 60 * 1000
     }
     return true
   })
@@ -95,7 +101,23 @@ function Recommendations() {
       onSearchChange={setSearchQuery}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        
+
+        {needsProfile && (
+          <div style={{
+            padding: '0.85rem 1.1rem', borderRadius: '12px', border: '1px solid rgba(245,158,11,0.35)',
+            background: 'rgba(245,158,11,0.08)', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', color: '#fcd34d', fontWeight: 500 }}>
+              <AlertCircle size={16} />
+              <span>Your profile is incomplete — these matches use the platform's most active domains. Add your research domain &amp; interests to sharpen them.</span>
+            </div>
+            <Link to="/profile" className="btn-ai-secondary" style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem' }}>
+              Complete Profile
+            </Link>
+          </div>
+        )}
+
         {/* Navigation Tabs */}
         <div style={{
           display: 'flex',

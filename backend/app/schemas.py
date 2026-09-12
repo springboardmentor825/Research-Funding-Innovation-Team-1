@@ -130,6 +130,9 @@ class TokenData(BaseModel):
 class ForgotPasswordRequest(BaseModel):
     email: str
 
+class GoogleAuthRequest(BaseModel):
+    credential: str
+
 # ==========================================
 # FUNDING SCHEMAS
 # ==========================================
@@ -173,6 +176,7 @@ class FundingRecommendationItem(BaseModel):
 
 class FundingRecommendationResponse(BaseModel):
     user_id: int
+    needs_profile: Optional[bool] = False
     researcher_profile: Optional[dict] = None
     recommendations: List[FundingRecommendationItem] = []
 
@@ -180,6 +184,31 @@ class FundingFeedbackRequest(BaseModel):
     user_id: int
     funding_id: int
     feedback: str # relevant, not_relevant, saved, applied, dismissed
+
+class FundingApplicationCreate(BaseModel):
+    funding_id: int
+    research_statement: str
+    budget_ask: Optional[str] = None
+
+class FundingApplicationOut(BaseModel):
+    id: int
+    user_id: int
+    funding_id: int
+    research_statement: str
+    budget_ask: Optional[str] = None
+    status: str
+    submitted_at: Optional[datetime] = None
+
+class FundingApplicationSummary(BaseModel):
+    id: int
+    funding_id: int
+    title: str
+    funder: str
+    amount_range: str
+    deadline: Optional[str] = None
+    status: str
+    budget_ask: Optional[str] = None
+    submitted_at: Optional[datetime] = None
 
 class RAGChatRequest(BaseModel):
     query: str

@@ -23,6 +23,16 @@ const authService = {
     return response.data
   },
 
+  googleLogin: async (credential) => {
+    const response = await api.post('/auth/google', { credential })
+    return response.data
+  },
+
+  getGoogleConfig: async () => {
+    const response = await api.get('/auth/google-config')
+    return response.data
+  },
+
   getProfile: async () => {
     const response = await api.get('/users/me')
     return response.data

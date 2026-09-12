@@ -1,230 +1,332 @@
 import os
 from typing import List, Dict, Any, Tuple
-from fastapi import APIRouter, Depends, HTTPException, status
+
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.database import get_db
 from app.models import Publication, Patent, ResearchProfile, FundingOpportunity, User
 from app.schemas import RAGChatRequest, RAGChatResponse
+from app.auth import get_current_user
+from app.services import rag_retrieval
 
 router = APIRouter()
 
-def query_database_context(db: Session, query_text: str) -> Tuple[List[str], List[Dict[str, Any]], str]:
-    """
-    Search database tables (Publications, Patents, Profiles, Funding Opportunities)
-    using strict token matching relevant to the user's query text.
-    Returns (context_passages, sources, primary_intent).
-    """
-    context_passages = []
-    sources = []
-    
-    q_lower = query_text.lower().strip()
-    stop_words = {"what", "where", "show", "list", "tell", "available", "about", "with", "from", "the", "that", "this", "some", "have", "please", "help"}
-    words = [w.strip() for w in q_lower.split() if len(w) > 2 and w not in stop_words]
+_FUNDING_HINTS = ["fund", "grant", "scheme", "money", "opportunity", "deadline", "budget", "finance", "call", "apply", "stipend", "scholarship", "fellowship"]
+_PUB_HINTS = ["paper", "publi", "journal", "article", "author", "doi", "conference", "write", "citation", "cited"]
+_PATENT_HINTS = ["patent", "ip ", "invent", "intellectual", "assignee", "claim", "technology domain"]
+_PROFILE_HINTS = ["profile", "researcher", "interest", "domain", "skill", "user", "organization"]
+_MY_HINTS = ["my", "mine", "i have", "i filed", "my patents", "my papers"]
 
-    # Determine intent
-    is_funding_query = any(k in q_lower for k in ["fund", "grant", "scheme", "money", "opportunity", "deadline", "budget", "finance", "call", "apply"])
-    is_pub_query = any(k in q_lower for k in ["paper", "publi", "journal", "article", "author", "doi", "conference", "write"])
-    is_patent_query = any(k in q_lower for k in ["patent", "ip ", "invent", "intellectual", "assignee", "claim"])
-    is_profile_query = any(k in q_lower for k in ["profile", "researcher", "interest", "domain", "skill", "user"])
 
-    primary_intent = "general"
-    if is_funding_query: primary_intent = "funding"
-    elif is_pub_query: primary_intent = "publication"
-    elif is_patent_query: primary_intent = "patent"
-    elif is_profile_query: primary_intent = "profile"
+def detect_intent(q: str) -> str:
+    q_lower = q.lower().strip()
+    # Meta / capability questions take priority
+    if q_lower in {"hi", "hello", "hey", "greetings"} or any(k in q_lower for k in ["what can you do", "help me", "how to use", "who are you"]):
+        return "meta"
+    if "retrieval augmented generation" in q_lower or "what is rag" in q_lower or "rag" == q_lower.strip():
+        return "explain_rag"
+    if any(k in q_lower for k in ["match score", "scored", "how do you score", "how are", "rule-based", "semantic similarity", "calculate"]):
+        return "explain_score"
 
-    # 1. Search Funding Opportunities ONLY if funding intent OR specific matching words exist
-    if is_funding_query or words:
-        fo_query = db.query(FundingOpportunity)
-        if words:
-            filters = [
-                or_(
-                    FundingOpportunity.title.like(f"%{w}%"),
-                    FundingOpportunity.keywords.like(f"%{w}%"),
-                    FundingOpportunity.research_domains.like(f"%{w}%"),
-                    FundingOpportunity.funder.like(f"%{w}%"),
-                    FundingOpportunity.technology_areas.like(f"%{w}%")
-                ) for w in words
-            ]
-            fo_query = fo_query.filter(or_(*filters))
-        
-        fos = fo_query.filter(FundingOpportunity.status == "open").limit(5).all()
-        # If explicit funding query found no keyword-specific matches, list active grants
-        if not fos and is_funding_query:
-            fos = db.query(FundingOpportunity).filter(FundingOpportunity.status == "open").limit(5).all()
+    scores = {
+        "funding": sum(1 for k in _FUNDING_HINTS if k in q_lower),
+        "publication": sum(1 for k in _PUB_HINTS if k in q_lower),
+        "patent": sum(1 for k in _PATENT_HINTS if k in q_lower),
+        "profile": sum(1 for k in _PROFILE_HINTS if k in q_lower),
+    }
+    top = max(scores, key=lambda x: scores[x])
+    if scores[top] > 0:
+        return top
+    return "general"
 
-        for fo in fos:
-            passage = f"Funding Opportunity: '{fo.title}' by {fo.funder} | Funding: {fo.amount_range} | Deadline: {fo.deadline}. Description: {fo.description or 'N/A'}"
-            context_passages.append(passage)
-            sources.append({"type": "funding_opportunity", "title": fo.title, "id": fo.id})
 
-    # 2. Search Publications if publication intent OR matching words exist
-    if is_pub_query or (words and not is_funding_query):
-        pub_query = db.query(Publication)
-        if words:
-            filters = [
-                or_(
-                    Publication.title.like(f"%{w}%"),
-                    Publication.authors.like(f"%{w}%"),
-                    Publication.journal.like(f"%{w}%")
-                ) for w in words
-            ]
-            pub_query = pub_query.filter(or_(*filters))
-        
-        pubs = pub_query.limit(5).all()
-        for p in pubs:
-            passage = f"Publication: '{p.title}' published in {p.journal} ({p.publication_year}) by {p.authors}."
-            context_passages.append(passage)
-            sources.append({"type": "publication", "title": p.title, "id": p.publication_id})
+def _my_publication_hits(db: Session, user: User, words: List[str]) -> List[Publication]:
+    q = db.query(Publication).filter(Publication.user_id == user.id)
+    if words:
+        filters = [or_(Publication.title.like(f"%{w}%"), Publication.authors.like(f"%{w}%"), Publication.journal.like(f"%{w}%")) for w in words]
+        q = q.filter(or_(*filters))
+    return q.limit(5).all()
 
-    # 3. Search Patents if patent intent OR matching words exist
-    if is_patent_query or (words and not is_funding_query):
-        pat_query = db.query(Patent)
-        if words:
-            filters = [
-                or_(
-                    Patent.title.like(f"%{w}%"),
-                    Patent.technology_domain.like(f"%{w}%"),
-                    Patent.inventor.like(f"%{w}%"),
-                    Patent.assignee.like(f"%{w}%")
-                ) for w in words
-            ]
-            pat_query = pat_query.filter(or_(*filters))
-        
-        pats = pat_query.limit(5).all()
-        for pt in pats:
-            passage = f"Patent: '{pt.title}' (Inventor: {pt.inventor}, Assignee: {pt.assignee}, Domain: {pt.technology_domain}, Filed: {pt.filing_date})."
-            context_passages.append(passage)
-            sources.append({"type": "patent", "title": pt.title, "id": pt.patent_id})
 
-    # 4. Search Profiles if profile intent
-    if is_profile_query:
+def _my_patent_hits(db: Session, user: User, words: List[str]) -> List[Patent]:
+    q = db.query(Patent).filter(Patent.user_id == user.id)
+    if words:
+        filters = [or_(Patent.title.like(f"%{w}%"), Patent.technology_domain.like(f"%{w}%"), Patent.inventor.like(f"%{w}%"), Patent.assignee.like(f"%{w}%")) for w in words]
+        q = q.filter(or_(*filters))
+    return q.limit(5).all()
+
+
+def build_context(db: Session, user: User, query_text: str) -> Tuple[List[Dict[str, Any]], str]:
+    """Hybrid retrieval across funding, corpus, patents, and the user's own records."""
+    intent = detect_intent(query_text)
+    words = [w for w in rag_retrieval.tokenize(query_text)]
+
+    sources: List[Dict[str, Any]] = []
+    is_my = any(k in query_text.lower() for k in ["my ", "mine"])
+
+    # 1. Funding — generic intent lists all open grants by platform fit; specific domain terms are BM25-ranked
+    domain_signals = {"quantum", "ai", "machine", "learning", "deep", "neural", "nlp", "llm", "rag",
+                      "blockchain", "clean", "energy", "health", "medical", "climate", "robotics",
+                      "nano", "nanotech", "cyber", "security", "data", "genomics", "bio", "biology",
+                      "solar", "cancer", "drug", "materials", "space", "robust", "semantic", "knowledge",
+                      "graph", "graph", "iot", "cloud", "edge", "agriculture", "ocean", "education"}
+    tokens = rag_retrieval.tokenize(query_text)
+    specific = [t for t in tokens if t in domain_signals]
+    funding_hits = []
+    if intent == "funding" and not specific:
+        occ = db.query(FundingOpportunity).filter(FundingOpportunity.status == "open").all()
+        occ = sorted(occ, key=lambda o: (o.semantic_fit or 0), reverse=True)
+        for o in occ[:5]:
+            funding_hits.append({
+                "type": "funding_opportunity", "id": o.id, "score": round(o.semantic_fit or 0, 1),
+                "title": o.title, "funder": o.funder, "amount_range": o.amount_range,
+                "deadline": str(o.deadline) if o.deadline else None, "description": o.description,
+                "research_domains": o.research_domains, "technology_areas": o.technology_areas,
+                "semantic_fit": o.semantic_fit,
+            })
+    else:
+        funding_hits = rag_retrieval.retrieve_funding(query_text, db, top_k=5)
+    if funding_hits:
+        sources.extend(funding_hits)
+    elif intent == "funding":
+        occ = db.query(FundingOpportunity).filter(FundingOpportunity.status == "open").limit(5).all()
+        for o in occ:
+            sources.append({
+                "type": "funding_opportunity", "id": o.id, "score": 0.0,
+                "title": o.title, "funder": o.funder, "amount_range": o.amount_range,
+                "deadline": str(o.deadline) if o.deadline else None, "description": o.description,
+                "research_domains": o.research_domains, "technology_areas": o.technology_areas,
+                "semantic_fit": o.semantic_fit,
+            })
+
+    # 2. Publications — global corpus OR the user's own records
+    if is_my:
+        mine = _my_publication_hits(db, user, words)
+        for p in mine:
+            sources.append({
+                "type": "publication", "id": p.publication_id, "score": 0.5, "mine": True,
+                "title": p.title, "year": None, "source": p.journal, "authors": p.authors,
+            })
+    if not is_my or intent == "publication":
+        pub_hits = rag_retrieval.retrieve_publications(query_text, db, top_k=5)
+        if pub_hits:
+            sources.extend(pub_hits)
+
+    # 3. Patents — user's own first, then global index
+    if is_my:
+        mine_pat = _my_patent_hits(db, user, words)
+        for pt in mine_pat:
+            sources.append({
+                "type": "patent", "id": pt.patent_id, "score": 0.5, "mine": True,
+                "title": pt.title, "technology_domain": pt.technology_domain,
+                "inventor": pt.inventor, "assignee": pt.assignee,
+                "filing_date": str(pt.filing_date) if pt.filing_date else None,
+            })
+    pat_hits = rag_retrieval.retrieve_patents(query_text, db, top_k=4)
+    if pat_hits and (intent == "patent" or intent == "general") and not is_my:
+        existing = {s["id"] for s in sources if s["type"] == "patent"}
+        pat_hits = [p for p in pat_hits if p["id"] not in existing][:4]
+        sources.extend(pat_hits)
+
+    # 4. Profile records
+    if intent == "profile":
         profiles = db.query(ResearchProfile).limit(3).all()
         for prof in profiles:
-            passage = f"Researcher Profile: Organization: {prof.organization}, Designation: {prof.designation}, Domain: {prof.research_domain}, Tech Focus: {prof.technology_area}."
-            context_passages.append(passage)
-            sources.append({"type": "profile", "title": f"Profile: {prof.research_domain}", "id": prof.profile_id})
+            sources.append({
+                "type": "profile", "id": prof.profile_id, "score": 0.5,
+                "title": prof.research_domain or "Researcher Profile",
+                "organization": prof.organization, "designation": prof.designation,
+                "research_domain": prof.research_domain, "technology_area": prof.technology_area,
+            })
 
-    return context_passages, sources, primary_intent
+    # Deduplicate preserving order
+    seen = set()
+    deduped = []
+    for s in sources:
+        key = (s["type"], s.get("id"))
+        if key not in seen:
+            seen.add(key)
+            deduped.append(s)
+    return deduped, intent
 
-def generate_rag_answer(query: str, context_passages: List[str], sources: List[Dict[str, Any]], primary_intent: str) -> str:
-    """
-    Generate accurate answer using Gemini or query-specific conversational synthesis.
-    """
-    q_lower = query.lower().strip()
 
-    # 1. Handle common conversational greetings
-    if q_lower in {"hi", "hello", "hey", "greetings", "good morning", "good afternoon"}:
-        return (
-            "Hello! 👋 I am your AI Research Assistant on the Research Funding & Innovation Platform.\n\n"
-            "How can I help you today? You can ask me to:\n"
-            "• Search active funding grants & deadlines (e.g., 'Show AI funding grants')\n"
-            "• Find research publications (e.g., 'Show papers on machine learning')\n"
-            "• Review registered patents & intellectual property\n"
-            "• Explain RAG and platform AI match scores"
-        )
+def format_passage(s: Dict[str, Any]) -> str:
+    t = s.get("type")
+    if t == "funding_opportunity":
+        return (f"Funding Opportunity: '{s.get('title')}' by {s.get('funder')} | Funding: {s.get('amount_range')} "
+                f"| Deadline: {s.get('deadline')}. {s.get('description') or ''}".strip())
+    if t == "publication":
+        base = f"Publication: '{s.get('title')}'"
+        if s.get("source"):
+            base += f" | Source: {s.get('source')}"
+        if s.get("year"):
+            base += f" ({s.get('year')})"
+        if s.get("authors"):
+            base += f" | Authors: {s.get('authors')}"
+        if s.get("cited_by_count") not in (None, 0):
+            base += f" | Citations: {s.get('cited_by_count')}"
+        return base
+    if t == "patent":
+        return (f"Patent: '{s.get('title')}' (Inventor: {s.get('inventor')}, Assignee: {s.get('assignee')}, "
+                f"Domain: {s.get('technology_domain')}, Filed: {s.get('filing_date')}).")
+    if t == "profile":
+        return (f"Researcher Profile: Organization: {s.get('organization')}, Designation: {s.get('designation')}, "
+                f"Domain: {s.get('research_domain')}, Tech Focus: {s.get('technology_area')}.")
+    return str(s)
 
-    # 2. Handle capability & help questions
-    if any(k in q_lower for k in ["what can you do", "help me", "how to use", "who are you", "what is this"]):
-        return (
-            "I am the platform's Hybrid RAG AI Assistant. I synthesize real-time data from database records and academic papers to assist researchers.\n\n"
-            "Try asking questions like:\n"
-            "1. 'What funding opportunities are open for Quantum Computing?'\n"
-            "2. 'List my registered patents and technology domains'\n"
-            "3. 'Show publications written by Madhu Krishna'\n"
-            "4. 'How are funding match scores calculated?'"
-        )
 
-    # 3. Handle RAG architectural questions
-    if "retrieval augmented generation" in q_lower or "rag" in q_lower:
-        return (
-            "Retrieval-Augmented Generation (RAG) is an AI architecture that enhances Large Language Models (LLMs) "
-            "by connecting them with real-time external databases and vector stores.\n\n"
-            "In this platform, Hybrid RAG combines:\n"
-            "• Structured MySQL database records (funding opportunities, publications, patents, profiles)\n"
-            "• Semantic vector embeddings (Sentence Transformers) to retrieve relevant research context before generating answers."
-        )
-
-    # 4. Try Gemini API generation if key is present
-    context_str = "\n".join(context_passages) if context_passages else "No direct database records found."
+def generate_gemini_answer(query: str, context_str: str) -> str:
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if api_key:
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            prompt = f"""
-You are an expert AI research funding consultant and assistant on the Research Funding & Innovation Platform.
-Answer the user's question accurately, concisely, and informatively based on the retrieved platform records below.
+    if not api_key:
+        return ""
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        prompt = f"""
+You are an expert AI research funding consultant and assistant on the Research Funding & Innovation Platform (Infera).
+Answer the user's question accurately, concisely, and helpfully based ONLY on the retrieved platform records below.
+When grants are mentioned, highlight title, funder, funding amount, and deadline, and advise the next step (save or apply).
+Keep responses factual and use clear bullet points.
 
 Database Records Context:
 {context_str}
 
 User Question: {query}
-
-Guidelines:
-- If asked about funding opportunities, highlight grant titles, funding amounts, funders, and deadlines.
-- Use clear bullet points and professional formatting.
-- Keep responses factual based on the records.
 """
-            response = model.generate_content(prompt)
-            if response and response.text:
-                return response.text.strip()
-        except Exception as e:
-            print(f"Gemini generation error in RAG: {e}")
+        response = model.generate_content(prompt)
+        if response and response.text:
+            return response.text.strip()
+    except Exception as e:
+        print(f"Gemini generation error in RAG: {e}")
+    return ""
 
-    # 5. Query-Specific Synthesis Based on Retrieved Context
-    if primary_intent == "funding" and context_passages:
-        fo_items = [f"• {p.replace('Funding Opportunity: ', '')}" for p in context_passages if p.startswith("Funding Opportunity:")]
-        if fo_items:
-            return f"Here are the active funding opportunities matching '{query}':\n\n" + "\n\n".join(fo_items[:4]) + "\n\nYou can explore full details on the Funding directory page."
 
-    if primary_intent == "publication" and context_passages:
-        pub_items = [f"• {p.replace('Publication: ', '')}" for p in context_passages if p.startswith("Publication:")]
-        if pub_items:
-            return f"Here are the relevant research publications for '{query}':\n\n" + "\n".join(pub_items[:4])
+def synthesize_answer(query: str, sources: List[Dict[str, Any]], intent: str, context_str: str) -> str:
+    q_lower = query.lower().strip()
 
-    if primary_intent == "patent" and context_passages:
-        pat_items = [f"• {p.replace('Patent: ', '')}" for p in context_passages if p.startswith("Patent:")]
-        if pat_items:
-            return f"Here are the registered intellectual property and patent assets for '{query}':\n\n" + "\n".join(pat_items[:4])
+    # Static helpful answers
+    if intent == "meta":
+        return (
+            "Hello! 👋 I am your AI Research Assistant on the Infera platform.\n\n"
+            "I can help you with:\n"
+            "• Funding guidance — active grants, amounts & deadlines (e.g., 'Which AI funding schemes are open?')\n"
+            "• Research discovery — papers from the global corpus (e.g., 'Show papers on quantum computing')\n"
+            "• Patent intelligence — registered IP and technology domains\n"
+            "• Platform help — how match scores work, how RAG works\n\n"
+            "Try a question, or use the example chips below."
+        )
+    if intent == "explain_rag":
+        return (
+            "Retrieval-Augmented Generation (RAG) is an AI architecture that grounds LLM answers in real, "
+            "up-to-date data instead of pure model memory.\n\n"
+            "In this platform, Hybrid RAG:\n"
+            "• Retrieves ranked context from structured MySQL records (funding, publications, patents, profiles)\n"
+            "• Uses a BM25 vector retrieval index over 50,000+ scholarly records for lexical ranking\n"
+            "• Generates a grounded, guidance-oriented answer with the sources shown below each reply"
+        )
+    if intent == "explain_score":
+        return (
+            "Funding match scores (0–100) are computed deterministically by the recommendation engine with these weights:\n\n"
+            "• Research Domain match — 25%\n"
+            "• Technology Area match — 20%\n"
+            "• Research Interests overlap — 15%\n"
+            "• Keyword overlap — 15%\n"
+            "• Publication evidence — 10%\n"
+            "• Patent / IP evidence — 10%\n"
+            "• Deadline urgency bonus — 5%\n\n"
+            "The rule-based score is blended 70/30 with a semantic similarity component. Higher is better; ≥75% is a strong match.\n"
+            "You can view ranked results with per-grant reasons on the Recommendations page."
+        )
 
-    # 6. General Keyword Matches Found
-    if context_passages:
-        formatted = [f"• {p}" for p in context_passages[:4]]
-        return f"Based on your query '{query}', here are the matching platform records:\n\n" + "\n\n".join(formatted)
+    funding = [s for s in sources if s["type"] == "funding_opportunity"]
+    pubs = [s for s in sources if s["type"] == "publication"]
+    pats = [s for s in sources if s["type"] == "patent"]
 
-    # 7. No Database Matches Found
+    if intent in ("funding", "general") and funding:
+        lines = []
+        for s in funding[:4]:
+            amt = s.get("amount_range") or "Varies"
+            dl = s.get("deadline") or "See funding page"
+            match = s.get("semantic_fit") or s.get("score") or 0
+            lines.append(f"• {s['title']} — {s.get('funder')} | Amount: {amt} | Deadline: {dl} | Fit: {match}%")
+        answer = f"Here are the most relevant funding opportunities for \"{query}\":\n\n" + "\n".join(lines)
+        answer += (
+            "\n\n**How to proceed:** open the card for details and use Save to track it, or Apply Now to initiate "
+            "your application on the Funding page (/funding). Your ranked personal list is on /recommendations."
+        )
+        return answer
+
+    if intent == "publication" or (intent == "general" and pubs):
+        lines = []
+        for s in pubs[:4]:
+            extra = []
+            if s.get("year"):
+                extra.append(str(s["year"]))
+            if s.get("source"):
+                extra.append(str(s["source"]))
+            cite = s.get("cited_by_count")
+            if cite:
+                extra.append(f"{cite} citations")
+            lines.append(f"• {s['title']}" + (f" ({', '.join(extra)})" if extra else ""))
+        answer = f"Here are relevant research publications for \"{query}\":\n\n" + "\n".join(lines)
+        answer += "\n\n**Next step:** add any of these to your Publications page by its DOI to grow your research profile and sharpen funding matches."
+        return answer
+
+    if intent == "patent" or (intent == "general" and pats):
+        lines = [f"• {s['title']} — Domain: {s.get('technology_domain') or 'N/A'} | Assignee: {s.get('assignee') or 'N/A'} | Filed: {s.get('filing_date') or 'N/A'}" for s in pats[:4]]
+        answer = f"Registered patent & IP assets matching \"{query}\":\n\n" + "\n".join(lines)
+        answer += f"\n\n**Next step:** view domain growth and innovation gaps in the Innovation Hub (/innovation)."
+        return answer
+
+    if intent == "profile":
+        return (
+            "Your researcher profile drives personalization.\n\n"
+            "Keep these fields up to date so the AI ranking stays sharp:\n"
+            "• Research domain & technology area\n"
+            "• Research interests & keywords\n\n"
+            "Edit them on the Profile page (/profile). While the profile is incomplete, recommendations fall back to the platform's most active domains."
+        )
+
+    if pubs or pats:
+        lines = [f"• {format_passage(s)}" for s in sources[:4]]
+        return f"Based on your query, here are the matching platform records:\n\n" + "\n\n".join(lines)
+
     return (
-        f"I searched the platform database for '{query}', but found no specific matching records.\n\n"
-        "Try asking about specific research areas such as 'Quantum', 'Artificial Intelligence', 'Clean Energy', 'Patents', or 'Publications'."
+        f"I couldn't find direct records for \"{query}\" in the platform data.\n\n"
+        "Try rephrasing with specifics, for example:\n"
+        "• 'Which AI funding grants are open?'\n"
+        "• 'Show papers on quantum computing'\n"
+        "• 'List my patents and domains'\n"
+        "• 'How are funding match scores calculated?'"
     )
 
-@router.post("/chat", response_model=RAGChatResponse)
-def rag_chat(request: RAGChatRequest, db: Session = Depends(get_db)):
-    """
-    RAG Chat API: Retrieves database & document context and generates an answer.
-    """
-    context_passages, sources, primary_intent = query_database_context(db, request.query)
-    answer = generate_rag_answer(request.query, context_passages, sources, primary_intent)
 
-    return {
-        "query": request.query,
-        "answer": answer,
-        "sources": sources
-    }
+@router.post("/chat", response_model=RAGChatResponse)
+def rag_chat(request: RAGChatRequest, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """
+    RAG Chat API: hybrid retrieval over funding, corpus, patents & user records,
+    then a grounded, guidance-oriented answer.
+    """
+    sources, intent = build_context(db, user, request.query)
+    context_str = "\n".join(format_passage(s) for s in sources[:6]) or "No direct records found."
+    answer = generate_gemini_answer(request.query, context_str)
+    if not answer:
+        answer = synthesize_answer(request.query, sources, intent, context_str)
+    return {"query": request.query, "answer": answer, "sources": sources}
+
 
 @router.post("/search")
-def rag_search(request: RAGChatRequest, db: Session = Depends(get_db)):
+def rag_search(request: RAGChatRequest, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     """
-    RAG Search API: Returns retrieved passages and sources for a query.
+    RAG Search API: returns retrieved passages and source metadata for debugging.
     """
-    context_passages, sources, primary_intent = query_database_context(db, request.query)
+    sources, intent = build_context(db, user, request.query)
     return {
         "query": request.query,
-        "passages": context_passages,
+        "passages": [format_passage(s) for s in sources],
         "sources": sources,
-        "intent": primary_intent
+        "intent": intent
     }

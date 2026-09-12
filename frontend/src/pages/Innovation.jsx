@@ -5,15 +5,16 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, AreaChart, Area, Cell
 } from 'recharts'
-import { Lightbulb, TrendingUp, FileText, Target, AlertCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Lightbulb, TrendingUp, FileText, Target, AlertCircle, ArrowUpRight, ArrowDownRight, Database, RefreshCw } from 'lucide-react'
 
 const CHART_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#64748b']
 const compact = (n) => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : String(n)
 
-function Panel({ title, children, style = {} }) {
+function Panel({ title, subtitle, children, style = {} }) {
   return (
     <div className="glass-card" style={{ padding: '1.5rem', ...style }}>
-      <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem' }}>{title}</h3>
+      <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{title}</h3>
+      {subtitle ? <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0 0 1rem 0' }}>{subtitle}</p> : null}
       {children}
     </div>
   )
@@ -25,13 +26,13 @@ function Innovation() {
   const [growth, setGrowth] = useState([])
   const [overlap, setOverlap] = useState([])
   const [opportunities, setOpportunities] = useState([])
+  const [landscape, setLandscape] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [loadingLandscape, setLoadingLandscape] = useState(true)
   const [error, setError] = useState('')
+  const [landscapeError, setLandscapeError] = useState('')
 
-  useEffect(() => { loadAll() }, [])
-
-  const loadAll = async () => {
-    setLoading(true)
+  const loadPatents = async () => {
     setError('')
     try {
       const [dom, trn, grw, ovl, opp] = await Promise.all([
@@ -47,10 +48,36 @@ function Innovation() {
       setOverlap(ovl)
       setOpportunities(opp)
     } catch (err) {
-      setError('Failed to load patent analytics. Add patents from the Patents page first.')
+      setError('Patent analytics are unavailable right now.')
+    }
+  }
+
+  const loadLandscape = async () => {
+    setLandscapeError('')
+    try {
+      const data = await patentAnalyticsService.researchLandscape()
+      setLandscape(data)
+    } catch (err) {
+      setLandscapeError('Research landscape could not be loaded.')
     } finally {
+      setLoadingLandscape(false)
+    }
+  }
+
+  useEffect(() => {
+    const run = async () => {
+      setLoading(true)
+      await Promise.all([loadPatents(), loadLandscape()])
       setLoading(false)
     }
+    run()
+  }, [])
+
+  const refresh = async () => {
+    setLoading(true)
+    setLoadingLandscape(true)
+    await Promise.all([loadPatents(), loadLandscape()])
+    setLoading(false)
   }
 
   const totalPatents = domains.reduce((s, d) => s + d.count, 0)
@@ -62,16 +89,113 @@ function Innovation() {
     .sort((a, b) => b.growth_rate - a.growth_rate)
     .slice(0, 6)
 
+  const maxPub = landscape?.hot_domains?.length ? Math.max(...landscape.hot_domains.map(h => h.publication_count)) : 1
+
   return (
-    <AppLayout title="Patent & Innovation Intelligence" subtitle="Analyze patent activity, technology trends, and innovation opportunities">
+    <AppLayout title="Patent & Innovation Intelligence" subtitle="Analyze patent activity, the global research landscape, and innovation opportunities">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1400px', margin: '0 auto' }}>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={loadAll} className="btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}>Refresh</button>
+          <button onClick={refresh} className="btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <RefreshCw size={14} /> Refresh
+          </button>
         </div>
 
-        {loading && <p style={{ color: 'var(--text-secondary)', padding: '3rem', textAlign: 'center' }}>Loading patent analytics...</p>}
-        {error && (
+        {loading && <p style={{ color: 'var(--text-secondary)', padding: '3rem', textAlign: 'center' }}>Loading innovation intelligence…</p>}
+
+        {/* ============ RESEARCH LANDSCAPE (global corpus) ============ */}
+        {!loading && landscape && (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              <div className="glass-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+                <Database size={22} style={{ color: '#3b82f6', marginBottom: '0.5rem' }} />
+                <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{compact(landscape.total_publications || 0)}</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Global Research Corpus</div>
+              </div>
+              <div className="glass-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+                <Target size={22} style={{ color: '#8b5cf6', marginBottom: '0.5rem' }} />
+                <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{landscape.open_funding_count || 0}</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Open Funding Tracks</div>
+              </div>
+              <div className="glass-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+                <Lightbulb size={22} style={{ color: '#f59e0b', marginBottom: '0.5rem' }} />
+                <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{landscape.hot_domains?.length || 0}</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Active Research Domains</div>
+              </div>
+              <div className="glass-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+                <TrendingUp size={22} style={{ color: '#10b981', marginBottom: '0.5rem' }} />
+                <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{landscape.publication_trends?.length || 0}</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Years Tracked</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <Panel title="Research Publication Trends" subtitle="Global corpus indexed per year">
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={landscape.publication_trends || []} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="lcTrendFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                    <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                    <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid var(--border-color)', backgroundColor: '#0f172a' }} labelStyle={{ color: '#e2e8f0' }} />
+                    <Area type="monotone" dataKey="count" name="Publications" stroke="#10b981" fill="url(#lcTrendFill)" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Panel>
+
+              <Panel title="Leading Research Topics" subtitle="Most active topics across the corpus">
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={(landscape.top_primary_topics || []).slice(0, 8)} layout="vertical" margin={{ left: 20, right: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis type="number" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                    <YAxis dataKey="name" type="category" width={150} tick={{ fill: '#cbd5e1', fontSize: 11 }} />
+                    <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid var(--border-color)', backgroundColor: '#0f172a' }} labelStyle={{ color: '#e2e8f0' }} />
+                    <Bar dataKey="count" name="Publications" radius={[0, 6, 6, 0]}>
+                      {(landscape.top_primary_topics || []).slice(0, 8).map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Panel>
+            </div>
+
+            {landscape.hot_domains?.length > 0 && (
+              <Panel title="Hot Research ↔ Funding Domains" subtitle="Where global research meets open funding opportunities">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
+                  {landscape.hot_domains.map((h, i) => (
+                    <div key={i} className="glass-card" style={{ padding: '1rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>{h.domain}</span>
+                        <span className="badge badge-blue" style={{ fontSize: '0.75rem' }}>{h.avg_semantic_fit}% fit</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                        <div style={{ flexGrow: 1, height: '8px', borderRadius: '999px', backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                          <div style={{ width: `${Math.max(4, (h.publication_count / maxPub) * 100)}%`, height: '100%', borderRadius: '999px', background: 'linear-gradient(90deg, #06b6d4, #6366f1)' }} />
+                        </div>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{compact(h.publication_count)} pubs</span>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>{h.funding_count} open funding track(s)</div>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            )}
+          </>
+        )}
+
+        {!loading && landscapeError && (
+          <div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
+            <AlertCircle size={28} style={{ color: '#f59e0b', marginBottom: '0.5rem' }} />
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{landscapeError}</p>
+          </div>
+        )}
+
+        {/* ============ PATENT ANALYTICS ============ */}
+        {!loading && error && totalPatents === 0 && (
           <div className="glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
             <AlertCircle size={32} style={{ color: '#f59e0b', marginBottom: '1rem' }} />
             <p style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>{error}</p>
@@ -79,18 +203,18 @@ function Innovation() {
         )}
 
         {!loading && !error && totalPatents === 0 && (
-          <div className="glass-card" style={{ padding: '4rem', textAlign: 'center' }}>
-            <FileText size={48} style={{ color: 'var(--primary-color)', marginBottom: '1rem', opacity: 0.5 }} />
-            <h3 style={{ color: 'var(--text-primary)', fontSize: '1.25rem', marginBottom: '0.5rem' }}>No patents yet</h3>
-            <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto' }}>
-              Go to the Patents page and add some patents. The analytics will appear here automatically.
+          <div className="glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
+            <FileText size={40} style={{ color: 'var(--primary-color)', marginBottom: '1rem', opacity: 0.5 }} />
+            <h3 style={{ color: 'var(--text-primary)', fontSize: '1.15rem', marginBottom: '0.5rem' }}>Your patent portfolio</h3>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto' }}>
+              No patents added yet — add some on the Patents page and your personal filing analytics will appear below.
             </p>
           </div>
         )}
 
         {!loading && !error && totalPatents > 0 && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
               <div className="glass-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
                 <FileText size={22} style={{ color: '#3b82f6', marginBottom: '0.5rem' }} />
                 <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{totalPatents}</div>

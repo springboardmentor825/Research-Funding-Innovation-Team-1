@@ -315,16 +315,39 @@ def rank_funding_opportunities(
     eligible_opps = filter_eligible_funding(researcher_features, funding_feature_list)
 
     # Score each eligible opportunity
-    scored_recommendations = []
-    for opp_feat in eligible_opps:
-        rec_item = calculate_match_score(researcher_features, opp_feat)
-        scored_recommendations.append(rec_item)
+    needs_profile = researcher_features.get("needs_profile", False)
 
-    # Sort descending by match_score
-    scored_recommendations.sort(key=lambda x: x["match_score"], reverse=True)
+    if needs_profile:
+        # Fresh accounts with no profile: surface popular open grants ranked by platform fit,
+        # with an honest, capped score and a nudge to complete the profile.
+        popularity_picks = []
+        for opp_feat in eligible_opps:
+            fit = opp_feat.get("semantic_fit") or 0
+            popularity_picks.append({
+                "funding_id": opp_feat.get("id"),
+                "title": opp_feat.get("title"),
+                "funder": opp_feat.get("funder"),
+                "amount_range": opp_feat.get("amount_range"),
+                "deadline": str(opp_feat.get("deadline")),
+                "match_score": min(45, round(fit * 0.45)),
+                "reason": f"Popular open grant on the platform (platform fit rating {fit}%). Complete your research profile with your domain and interests to unlock personalized scoring.",
+                "matched_signals": [f"Platform fit rating: {fit}%"] if fit else [],
+                "unmatched_signals": [],
+                "status": "recommended"
+            })
+        popularity_picks.sort(key=lambda x: x["match_score"], reverse=True)
+        top_recommendations = popularity_picks[:top_k]
+    else:
+        scored_recommendations = []
+        for opp_feat in eligible_opps:
+            rec_item = calculate_match_score(researcher_features, opp_feat)
+            scored_recommendations.append(rec_item)
 
-    # Slice top_k
-    top_recommendations = scored_recommendations[:top_k]
+        # Sort descending by match_score
+        scored_recommendations.sort(key=lambda x: x["match_score"], reverse=True)
+
+        # Slice top_k
+        top_recommendations = scored_recommendations[:top_k]
 
     # Save generated recommendations to funding_recommendations database table
     try:
@@ -344,6 +367,7 @@ def rank_funding_opportunities(
 
     return {
         "user_id": user_id,
+        "needs_profile": needs_profile,
         "researcher_profile": {
             "research_domain": researcher_features.get("research_domain"),
             "technology_area": researcher_features.get("technology_area"),
