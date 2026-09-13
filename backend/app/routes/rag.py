@@ -214,6 +214,7 @@ def generate_gemini_answer(query: str, context_str: str) -> str:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-1.5-flash')
+        config = genai.types.GenerationConfig(max_output_tokens=768, temperature=0.4, candidate_count=1)
         prompt = f"""
 You are an expert AI research funding consultant and assistant on the Research Funding & Innovation Platform (Infera).
 Answer the user's question accurately, concisely, and helpfully based ONLY on the retrieved platform records below.
@@ -225,7 +226,7 @@ Database Records Context:
 
 User Question: {query}
 """
-        response = model.generate_content(prompt)
+        response = model.generate_content(prompt, generation_config=config)
         if response and response.text:
             return response.text.strip()
     except Exception as e:
@@ -354,7 +355,8 @@ def rag_chat(request: RAGChatRequest, db: Session = Depends(get_db), user: User 
     """
     sources, intent = build_context(db, user, request.query)
     context_str = "\n".join(format_passage(s) for s in sources[:6]) or "No direct records found."
-    if intent == "irrelevant":
+    if intent in {"meta", "explain_rag", "explain_score", "profile", "irrelevant"}:
+        # Static answers are instant — no LLM round-trip needed
         answer = synthesize_answer(request.query, sources, intent, context_str)
     else:
         answer = generate_gemini_answer(request.query, context_str)

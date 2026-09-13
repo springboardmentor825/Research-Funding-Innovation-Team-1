@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routes import auth, users, publications, patents, analytics, funding, rag, applications
+from app.services import rag_retrieval
 import os
 from dotenv import load_dotenv
 
@@ -64,3 +65,7 @@ def read_root():
 @app.api_route("/healthz", methods=["GET", "HEAD"])
 def healthz():
     return {"status": "ok"}
+
+# Warm the RAG index in the background so the first chat is fast and
+# the index build never blocks (or spikes memory on) an incoming request.
+rag_retrieval.prewarm()

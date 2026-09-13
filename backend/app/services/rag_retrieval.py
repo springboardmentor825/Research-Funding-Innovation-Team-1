@@ -103,7 +103,7 @@ class RetrievalCorpus:
 
     def __init__(self):
         self._lock = threading.Lock()
-        self._ttl = 300.0  # rebuild every 5 minutes
+        self._ttl = 1800.0  # rebuild every 30 minutes
         self._built_at = 0.0
 
         # Funding index
@@ -123,6 +123,11 @@ class RetrievalCorpus:
 
 
 _corpus = RetrievalCorpus()
+
+# Keep the in-memory corpus small enough for the Render free tier (512 MB).
+# The 50K full corpus, loaded as ORM objects with a BM25 postings index,
+# exceeded the instance limit and caused OOM restarts.
+_PUB_CORPUS_LIMIT = 10000
 
 
 def _ensure_built(db: Session) -> RetrievalCorpus:
@@ -152,20 +157,32 @@ def _ensure_built(db: Session) -> RetrievalCorpus:
             }
         _corpus._fund_index = BM25Index(_corpus._fund_docs)
 
-        # Global research corpus
-        pubs = db.query(ResearchPublication).all()
+        # Global research corpus — most-cited subset, plain column tuples
+        # (avoids pinning 50K ORM objects in the session identity map)
+        cols = [
+            ResearchPublication.research_id,
+            ResearchPublication.title,
+            ResearchPublication.primary_topic,
+            ResearchPublication.topics_raw,
+            ResearchPublication.concepts_raw,
+            ResearchPublication.authors_raw,
+            ResearchPublication.source,
+            ResearchPublication.publication_year,
+            ResearchPublication.cited_by_count,
+            ResearchPublication.doi,
+        ]
+        rows = db.query(*cols).order_by(ResearchPublication.cited_by_count.desc()).limit(_PUB_CORPUS_LIMIT).all()
         _corpus._pub_docs = []
         _corpus._pub_meta = {}
-        for p in pubs:
+        for rid, title, p_topic, topics_raw, concepts_raw, authors_raw, source, year, cited, doi in rows:
             text = " ".join(filter(None, [
-                p.title, p.primary_topic, p.topics_raw, p.concepts_raw, p.authors_raw,
-                p.source or "",
+                title, p_topic, topics_raw, concepts_raw, authors_raw, source or "",
             ]))
-            _corpus._pub_docs.append((p.research_id, text))
-            _corpus._pub_meta[p.research_id] = {
-                "title": p.title, "year": p.publication_year, "source": p.source,
-                "authors": p.authors_raw, "cited_by_count": p.cited_by_count,
-                "doi": p.doi, "primary_topic": p.primary_topic,
+            _corpus._pub_docs.append((rid, text))
+            _corpus._pub_meta[rid] = {
+                "title": title, "year": year, "source": source,
+                "authors": authors_raw, "cited_by_count": cited,
+                "doi": doi, "primary_topic": p_topic,
             }
         _corpus._pub_index = BM25Index(_corpus._pub_docs)
 
@@ -227,3 +244,21 @@ def retrieve_patents(query: str, db: Session, top_k: int = 5) -> List[Dict]:
         meta = corpus._pat_meta[doc_id]
         results.append({"type": "patent", "id": doc_id, "score": round(score, 2), **meta})
     return results
+
+
+def prewarm() -> None:
+    """Build the retrieval indexes once at startup (background) to avoid first-chat latency."""
+    from app.database import SessionLocal
+
+    def _warm() -> None:
+        try:
+            db = SessionLocal()
+            try:
+                _ensure_built(db)
+            finally:
+                db.close()
+            print("RAG retrieval corpus warmed.")
+        except Exception as e:
+            print(f"RAG corpus prewarm failed: {e}")
+
+    threading.Thread(target=_warm, daemon=True).start()
