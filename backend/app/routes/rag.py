@@ -19,6 +19,31 @@ _PATENT_HINTS = ["patent", "ip ", "invent", "intellectual", "assignee", "claim",
 _PROFILE_HINTS = ["profile", "researcher", "interest", "domain", "skill", "user", "organization"]
 _MY_HINTS = ["my", "mine", "i have", "i filed", "my patents", "my papers"]
 
+_DOMAIN_VOCAB = {
+    "research", "fund", "funding", "grant", "scholar", "fellowship", "stipend",
+    "paper", "publi", "publication", "journal", "article", "citation", "doi", "conference",
+    "patent", "ip", "invent", "intellectual", "assignee",
+    "profile", "researcher", "skill", "organization",
+    "ai", "artificial", "machine", "learning", "deep", "neural", "nlp", "llm",
+    "quantum", "blockchain", "cyber", "security", "data", "cloud", "edge",
+    "bio", "genomic", "cancer", "drug", "medical", "health",
+    "climate", "energy", "solar", "clean", "nano", "robot",
+    "space", "agriculture", "education", "iot",
+    "match", "score", "recommend", "apply", "budget", "deadline",
+    "infera", "platform", "opportunity",
+}
+
+
+def _is_domain_relevant(q_lower: str) -> bool:
+    """Return True if any token in the query matches a domain-relevant term."""
+    for word in q_lower.split():
+        if word in _DOMAIN_VOCAB:
+            return True
+    for term in _DOMAIN_VOCAB:
+        if len(term) > 3 and term in q_lower:
+            return True
+    return False
+
 
 def detect_intent(q: str) -> str:
     q_lower = q.lower().strip()
@@ -39,6 +64,8 @@ def detect_intent(q: str) -> str:
     top = max(scores, key=lambda x: scores[x])
     if scores[top] > 0:
         return top
+    if not _is_domain_relevant(q_lower):
+        return "irrelevant"
     return "general"
 
 
@@ -61,6 +88,8 @@ def _my_patent_hits(db: Session, user: User, words: List[str]) -> List[Patent]:
 def build_context(db: Session, user: User, query_text: str) -> Tuple[List[Dict[str, Any]], str]:
     """Hybrid retrieval across funding, corpus, patents, and the user's own records."""
     intent = detect_intent(query_text)
+    if intent == "irrelevant":
+        return [], intent
     words = [w for w in rag_retrieval.tokenize(query_text)]
 
     sources: List[Dict[str, Any]] = []
@@ -207,6 +236,19 @@ User Question: {query}
 def synthesize_answer(query: str, sources: List[Dict[str, Any]], intent: str, context_str: str) -> str:
     q_lower = query.lower().strip()
 
+    # Out-of-scope questions
+    if intent == "irrelevant":
+        return (
+            "This question is outside the scope of the Research Funding & Innovation platform — "
+            "I'm not able to help with that. 😊\n\n"
+            "I can assist you with topics relevant to this domain, for example:\n"
+            "• Funding opportunities and grants ('Which AI funding schemes are open?')\n"
+            "• Research publications from the global corpus ('Show papers on quantum computing')\n"
+            "• Patent intelligence & IP ('List patents in clean energy')\n"
+            "• Your profile, match scores, and recommendations\n\n"
+            "Try rephrasing your question or use the example chips below!"
+        )
+
     # Static helpful answers
     if intent == "meta":
         return (
@@ -312,9 +354,12 @@ def rag_chat(request: RAGChatRequest, db: Session = Depends(get_db), user: User 
     """
     sources, intent = build_context(db, user, request.query)
     context_str = "\n".join(format_passage(s) for s in sources[:6]) or "No direct records found."
-    answer = generate_gemini_answer(request.query, context_str)
-    if not answer:
+    if intent == "irrelevant":
         answer = synthesize_answer(request.query, sources, intent, context_str)
+    else:
+        answer = generate_gemini_answer(request.query, context_str)
+        if not answer:
+            answer = synthesize_answer(request.query, sources, intent, context_str)
     return {"query": request.query, "answer": answer, "sources": sources}
 
 
