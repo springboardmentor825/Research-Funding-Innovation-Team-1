@@ -53,10 +53,14 @@ app.include_router(applications.router, prefix="/api/v1/applications", tags=["Gr
 app.include_router(rag.router, prefix="/api/rag", tags=["Hybrid RAG"])
 app.include_router(rag.router, prefix="/api/v1/rag", tags=["Hybrid RAG"])
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     return {
         "status": "online",
         "service": "Infera Backend",
         "docs": "/docs"
     }
+
+@app.api_route("/healthz", methods=["GET", "HEAD"])
+def healthz():
+    return {"status": "ok"}

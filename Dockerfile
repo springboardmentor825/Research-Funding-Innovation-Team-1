@@ -19,7 +19,7 @@ RUN VITE_API_URL=/api/v1 VITE_GOOGLE_ONLY=$VITE_GOOGLE_ONLY npm run build
 # ---- Stage 2: runtime (nginx + uvicorn) ----
 FROM python:3.11-slim AS runtime
 ENV PYTHONUNBUFFERED=1
-RUN apt-get update && apt-get install -y --no-install-recommends nginx && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends nginx && rm -rf /var/lib/apt/lists/* && rm -f /etc/nginx/sites-enabled/default
 
 WORKDIR /app
 COPY backend/requirements.txt ./requirements.txt
