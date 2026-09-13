@@ -11,6 +11,7 @@ function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleClientId, setGoogleClientId] = useState('')
+  const [googleReady, setGoogleReady] = useState(false)
   const { login, googleLogin } = useAuth()
   const navigate = useNavigate()
   const googleRef = useRef(null)
@@ -19,6 +20,14 @@ function Login() {
     authService.getGoogleConfig()
       .then(cfg => setGoogleClientId(cfg.client_id || ''))
       .catch(() => setGoogleClientId(''))
+  }, [])
+
+  useEffect(() => {
+    if (window.google) { setGoogleReady(true); return }
+    const t = setInterval(() => {
+      if (window.google) { setGoogleReady(true); clearInterval(t) }
+    }, 200)
+    return () => clearInterval(t)
   }, [])
 
   const handleGoogleCredential = async (response) => {
@@ -35,8 +44,7 @@ function Login() {
   }
 
   useEffect(() => {
-    if (!googleClientId || !googleRef.current) return
-    if (!window.google) return
+    if (!googleClientId || !googleReady || !googleRef.current) return
 
     window.google.accounts.id.initialize({
       client_id: googleClientId,
@@ -49,7 +57,7 @@ function Login() {
       shape: 'pill',
       width: googleRef.current.clientWidth || 340
     })
-  }, [googleClientId])
+  }, [googleClientId, googleReady])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -77,7 +85,7 @@ function Login() {
           </div>
         )}
 
-        {googleClientId && (
+        {googleClientId && googleReady && (
           <>
             <div ref={googleRef} style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }} />
             {!GOOGLE_ONLY && (
@@ -112,7 +120,7 @@ function Login() {
 
         {!googleClientId && (
           <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-            Sign-in is temporarily unavailable.
+            Loading sign-in…
           </p>
         )}
 
