@@ -1,6 +1,17 @@
 # Research Funding & Innovation Intelligence Platform
 
-A production-grade intelligence suite using **FastAPI (Python)**, **SQLAlchemy ORM (MySQL)**, and **React.js** for mapping and indexing researchers' profiles, publications portfolio, and patented IP.
+A production-grade intelligence suite using **FastAPI (Python)**, **SQLAlchemy ORM (MySQL/TiDB)**, and **React.js** for mapping and indexing researchers' profiles, publications portfolio, and patented IP.
+
+---
+
+## 0. Live Deployment
+
+> 🚀 **https://research-funding-innovation-team-1.onrender.com**
+
+- Production stack: single Docker container (nginx static SPA + FastAPI backend) hosted on **Render** free tier, backed by **TiDB Serverless** MySQL.
+- Sign in with **Google** (any account) or a **registered email/password** account.
+- Deployment config lives in the root `Dockerfile`, `deploy/nginx.conf`, `deploy/entrypoint.sh`, and `render.yaml`.
+- Note: Render free instances sleep after ~15 min of inactivity; the first visit after sleeping takes ~30-60s to wake.
 
 ---
 
