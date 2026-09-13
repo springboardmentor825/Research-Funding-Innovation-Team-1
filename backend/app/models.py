@@ -15,6 +15,7 @@ class User(Base):
     google_id = Column(String(255), unique=True, nullable=True)
     profile_picture = Column(String(500), nullable=True)
     auth_provider = Column(String(50), nullable=False, default="email")
+    account_status = Column(String(50), nullable=False, default="active")
 
     # Child relationships (cascade delete handled by database layer or ORM context)
     profile = relationship("ResearchProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")

@@ -171,9 +171,8 @@ function Register() {
             <div style={{ position: 'relative' }}>
               <Shield size={16} color="#94A3B8" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', zIndex: 1 }} />
               <select className="ai-select" value={role} onChange={e => setRole(e.target.value)} style={{ paddingLeft: '2.5rem' }}>
-                <option value="researcher">Researcher / Innovator</option>
-                <option value="funder">Investor / Funder</option>
-                <option value="admin">Administrator</option>
+                <option value="researcher">Researcher</option>
+                <option value="startup_founder">Startup Founder</option>
               </select>
             </div>
           </div>

@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import { 
   LayoutDashboard, 
   Sparkles, 
@@ -8,26 +9,52 @@ import {
   BookOpen, 
   Award, 
   Lightbulb, 
-  Bot,
-  Menu,
+  Rocket,
   X
 } from 'lucide-react'
 
 function Sidebar({ mobileOpen, setMobileOpen }) {
   const location = useLocation()
+  const { user } = useAuth()
   const isActive = (path) => location.pathname === path
+  const userRole = user?.role || 'researcher'
 
-  const navItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { label: 'Recommendations', path: '/recommendations', icon: Sparkles, badge: 'AI' },
-    { label: 'Funding Opportunities', path: '/funding', icon: Search },
-    { label: 'My Profile', path: '/profile', icon: User },
-    { label: 'Researcher Intelligence', path: '/researcher-intelligence', icon: User, badge: '360°' },
-    { label: 'Publications', path: '/publications', icon: BookOpen },
-    { label: 'Patents', path: '/patents', icon: Award },
-    { label: 'Patent Intelligence', path: '/patent-intelligence', icon: Award, badge: 'Trends' },
-    { label: 'Innovation Hub', path: '/innovation', icon: Lightbulb },
-  ]
+  // Define role-aware navigation items
+  let navItems = []
+
+  if (userRole === 'administrator') {
+    navItems = [
+      { label: 'Admin Dashboard', path: '/admin/dashboard', icon: LayoutDashboard, badge: 'System' },
+      { label: 'User Management', path: '/admin/users', icon: User, badge: 'Users' },
+      { label: 'Platform Analytics', path: '/admin/analytics', icon: Sparkles },
+      { label: 'Recommendation Monitor', path: '/admin/recommendations', icon: Award },
+      { label: 'System Reports', path: '/admin/reports', icon: BookOpen },
+      { label: 'My Profile', path: '/profile', icon: User }
+    ]
+  } else if (userRole === 'startup_founder') {
+    navItems = [
+      { label: 'Startup Dashboard', path: '/startup/dashboard', icon: Rocket, badge: 'Founder' },
+      { label: 'Funding Opportunities', path: '/funding', icon: Search },
+      { label: 'Patent Intelligence', path: '/patent-intelligence', icon: Award, badge: 'IP' },
+      { label: 'Innovation Hub', path: '/innovation', icon: Lightbulb },
+      { label: 'Commercialization', path: '/commercialization', icon: Rocket, badge: 'Transfer' },
+      { label: 'My Profile', path: '/profile', icon: User }
+    ]
+  } else {
+    navItems = [
+      { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'Recommendations', path: '/recommendations', icon: Sparkles, badge: 'AI' },
+      { label: 'Funding Opportunities', path: '/funding', icon: Search },
+      { label: 'My Profile', path: '/profile', icon: User },
+      { label: 'Researcher Intelligence', path: '/researcher-intelligence', icon: User, badge: '360°' },
+      { label: 'Publications', path: '/publications', icon: BookOpen },
+      { label: 'Patents', path: '/patents', icon: Award },
+      { label: 'Patent Intelligence', path: '/patent-intelligence', icon: Award, badge: 'Trends' },
+      { label: 'Innovation Hub', path: '/innovation', icon: Lightbulb },
+    ]
+  }
+
+  const brandDashboardPath = userRole === 'administrator' ? '/admin/dashboard' : userRole === 'startup_founder' ? '/startup/dashboard' : '/dashboard'
 
   return (
     <>
@@ -59,7 +86,6 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
           left: 0,
           zIndex: 50,
           transition: 'transform 0.3s ease',
-          transform: mobileOpen ? 'translateX(0)' : 'translateX(0)', // responsive handled via media queries
         }}
         className="sidebar-responsive"
       >
@@ -71,7 +97,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
           justifyContent: 'space-between',
           borderBottom: '1px solid var(--border-color)'
         }}>
-          <Link to="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Link to={brandDashboardPath} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{
               width: '40px',
               height: '40px',
@@ -89,7 +115,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
                 AI Fund
               </div>
               <div style={{ fontSize: '0.725rem', color: 'var(--accent-cyan-light)', fontWeight: 500 }}>
-                Intelligence Platform
+                {userRole === 'startup_founder' ? 'Founder Workspace' : 'Intelligence Platform'}
               </div>
             </div>
           </Link>
@@ -106,7 +132,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
         {/* Navigation Items */}
         <nav style={{ padding: '1.25rem 0.85rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', flexGrow: 1, overflowY: 'auto' }}>
           <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0.5rem 0.75rem' }}>
-            Main Menu
+            {userRole.replace('_', ' ').toUpperCase()} NAV
           </div>
 
           {navItems.map((item) => {

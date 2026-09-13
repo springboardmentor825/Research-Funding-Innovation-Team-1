@@ -1,0 +1,90 @@
+[
+  {
+    "id": "R001",
+    "name": "Dr. Ananya Krishnan",
+    "institution": "IIT Madras",
+    "research_domains": ["AI", "IoT", "Sustainability"],
+    "keywords": ["machine learning", "sensor networks", "smart agriculture", "predictive analytics"],
+    "bio": "Works on AI-driven IoT systems for agricultural and food supply chain optimization, with a focus on reducing waste through real-time sensor data and predictive modeling.",
+    "publications_count": 24,
+    "collaboration_stage": "seeking collaborators",
+    "location": "India"
+  },
+  {
+    "id": "R002",
+    "name": "Dr. Rohan Mehta",
+    "institution": "IISc Bangalore",
+    "research_domains": ["Biotech", "AI", "Data Analytics"],
+    "keywords": ["bioinformatics", "genomic data", "deep learning", "healthcare AI"],
+    "bio": "Focuses on applying deep learning models to genomic and biomedical datasets to accelerate early-stage disease detection and drug discovery pipelines.",
+    "publications_count": 31,
+    "collaboration_stage": "open to co-authoring",
+    "location": "India"
+  },
+  {
+    "id": "R003",
+    "name": "Dr. Priya Nair",
+    "institution": "IIT Bombay",
+    "research_domains": ["IoT", "Sustainability", "Engineering"],
+    "keywords": ["embedded systems", "renewable energy", "smart cities", "environmental monitoring"],
+    "bio": "Researches low-power IoT hardware for environmental and energy monitoring, with several deployed pilot projects in smart city infrastructure across Indian metros.",
+    "publications_count": 18,
+    "collaboration_stage": "seeking collaborators",
+    "location": "India"
+  },
+  {
+    "id": "R004",
+    "name": "Dr. Arjun Verma",
+    "institution": "IIT Delhi",
+    "research_domains": ["AI", "Robotics", "Engineering"],
+    "keywords": ["computer vision", "autonomous systems", "reinforcement learning", "industrial automation"],
+    "bio": "Works on computer vision and reinforcement learning for autonomous robotic systems, with applications in industrial automation and precision manufacturing.",
+    "publications_count": 27,
+    "collaboration_stage": "not currently available",
+    "location": "India"
+  },
+  {
+    "id": "R005",
+    "name": "Dr. Meera Iyer",
+    "institution": "National Institute of Technology, Trichy",
+    "research_domains": ["Sustainability", "Data Analytics", "Engineering"],
+    "keywords": ["circular economy", "waste management", "life-cycle assessment", "policy modeling"],
+    "bio": "Studies data-driven approaches to circular economy design, focusing on waste reduction models for urban and industrial systems using large-scale environmental datasets.",
+    "publications_count": 15,
+    "collaboration_stage": "seeking collaborators",
+    "location": "India"
+  },
+  {
+    "id": "R006",
+    "name": "Dr. Karthik Subramaniam",
+    "institution": "IIT Kharagpur",
+    "research_domains": ["Biotech", "Sustainability"],
+    "keywords": ["synthetic biology", "biodegradable materials", "green chemistry", "material science"],
+    "bio": "Develops biodegradable material alternatives using synthetic biology techniques, aiming to reduce plastic and packaging waste in consumer and industrial applications.",
+    "publications_count": 21,
+    "collaboration_stage": "open to co-authoring",
+    "location": "India"
+  },
+  {
+    "id": "R007",
+    "name": "Dr. Sneha Reddy",
+    "institution": "IIIT Hyderabad",
+    "research_domains": ["AI", "Data Analytics"],
+    "keywords": ["natural language processing", "large language models", "text mining", "knowledge graphs"],
+    "bio": "Researches large language models and knowledge graph construction for scientific literature mining, helping researchers discover cross-domain connections faster.",
+    "publications_count": 19,
+    "collaboration_stage": "seeking collaborators",
+    "location": "India"
+  },
+  {
+    "id": "R008",
+    "name": "Dr. Vikram Rao",
+    "institution": "IIT Kanpur",
+    "research_domains": ["IoT", "AI", "Engineering"],
+    "keywords": ["edge computing", "sensor fusion", "predictive maintenance", "industrial IoT"],
+    "bio": "Focuses on edge AI and sensor fusion techniques for predictive maintenance in industrial IoT deployments, reducing downtime through real-time anomaly detection.",
+    "publications_count": 22,
+    "collaboration_stage": "open to co-authoring",
+    "location": "India"
+  }
+]

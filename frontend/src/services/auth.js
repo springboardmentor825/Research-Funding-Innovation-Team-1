@@ -1,14 +1,11 @@
 import api from './api'
 
 const authService = {
-  login: async (email, password) => {
-    const formData = new URLSearchParams()
-    formData.append('username', email)
-    formData.append('password', password)
-    const response = await api.post('/auth/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+  login: async (email, password, selectedRole) => {
+    const response = await api.post('/auth/login', {
+      email,
+      password,
+      selected_role: selectedRole
     })
     return response.data
   },
@@ -23,8 +20,25 @@ const authService = {
     return response.data
   },
 
+  googleAuth: async (email, fullName, credential = null) => {
+    const response = await api.post('/auth/google', {
+      email,
+      full_name: fullName,
+      credential
+    })
+    return response.data
+  },
+
+  completeGoogleRegistration: async (pendingToken, selectedRole) => {
+    const response = await api.post('/auth/google/complete-registration', {
+      pending_token: pendingToken,
+      selected_role: selectedRole
+    })
+    return response.data
+  },
+
   getProfile: async () => {
-    const response = await api.get('/users/me')
+    const response = await api.get('/auth/me')
     return response.data
   },
 
@@ -35,4 +49,3 @@ const authService = {
 }
 
 export default authService
-

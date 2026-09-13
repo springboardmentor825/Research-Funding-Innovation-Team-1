@@ -119,18 +119,39 @@ class User(UserBase):
     publications: List[Publication] = []
     patents: List[Patent] = []
 
-    class Config:
-        from_attributes = True
+class UserLoginRequest(BaseModel):
+    email: str
+    password: str
+    selected_role: str
+
+class GoogleAuthRequest(BaseModel):
+    credential: Optional[str] = None
+    id_token: Optional[str] = None
+    code: Optional[str] = None
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+
+class GoogleRoleCompletionRequest(BaseModel):
+    pending_token: str
+    selected_role: str
 
 # ==========================================
 # TOKEN SCHEMAS
 # ==========================================
 class Token(BaseModel):
-    access_token: str
-    token_type: str
+    access_token: Optional[str] = None
+    token_type: Optional[str] = "bearer"
+    role: Optional[str] = None
+    account_status: Optional[str] = None
+    user_id: Optional[int] = None
+    full_name: Optional[str] = None
+    status: Optional[str] = "success"
+    pending_token: Optional[str] = None
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+    role: Optional[str] = None
+    user_id: Optional[int] = None
 
 class ForgotPasswordRequest(BaseModel):
     email: str

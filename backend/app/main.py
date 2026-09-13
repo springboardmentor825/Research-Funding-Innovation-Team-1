@@ -32,15 +32,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routes import auth, users, publications, patents, funding, rag, researcher, collaboration, dashboard
+from app.routes import auth, users, publications, patents, funding, rag, researcher, collaboration, dashboard, startup, admin
 
 # Connect Route handlers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(admin.router, prefix="/api/admin", tags=["Administrator Module"])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["Administrator Module"])
 app.include_router(users.router, prefix="/api/users", tags=["Users & Profiles"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users & Profiles"])
 app.include_router(publications.router, prefix="/api/v1/publications", tags=["Publications"])
 app.include_router(patents.router, prefix="/api/patents", tags=["Patents"])
 app.include_router(patents.router, prefix="/api/v1/patents", tags=["Patents"])
+
+# Startup Founder Module routes
+app.include_router(startup.router, prefix="/api/startup", tags=["Startup Founder Module"])
+app.include_router(startup.router, prefix="/api/v1/startup", tags=["Startup Founder Module"])
 
 # Researcher Feature & Intelligence routes
 app.include_router(researcher.router, prefix="/api/researcher", tags=["Researcher Features"])
