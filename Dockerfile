@@ -7,7 +7,7 @@
 
 # ---- Stage 1: build frontend ----
 FROM node:20-alpine AS web-build
-ARG VITE_GOOGLE_ONLY=true
+ARG VITE_GOOGLE_ONLY=false
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install --no-audit --no-fund
