@@ -1,0 +1,15 @@
+name: Keep Render instance awake
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend health check
+        run: curl -sS -o /dev/null -w "healthz status: %{http_code} in %{time_total}s\n" https://infera.onrender.com/healthz || true
+      - name: Ping frontend root
+        run: curl -sS -o /dev/null -w "root status: %{http_code} in %{time_total}s\n" https://infera.onrender.com/ || true
