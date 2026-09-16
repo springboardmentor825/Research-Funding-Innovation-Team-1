@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import Login from '../pages/Login'
 import Register from '../pages/Register'
 import Dashboard from '../pages/Dashboard'
+import AdminDashboard from '../pages/AdminDashboard'
+import FunderDashboard from '../pages/FunderDashboard'
 import Recommendations from '../pages/Recommendations'
 import Funding from '../pages/Funding'
 import Innovation from '../pages/Innovation'
@@ -32,6 +34,13 @@ const ProtectedRoute = ({ children }) => {
   return children
 }
 
+const DashboardHome = () => {
+  const { user } = useAuth()
+  if (user?.role === 'admin') return <AdminDashboard />
+  if (user?.role === 'funder') return <FunderDashboard />
+  return <Dashboard />
+}
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -40,7 +49,7 @@ const AppRoutes = () => {
       
       <Route path="/dashboard" element={
         <ProtectedRoute>
-          <Dashboard />
+          <DashboardHome />
         </ProtectedRoute>
       } />
 

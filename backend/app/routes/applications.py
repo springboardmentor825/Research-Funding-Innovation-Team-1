@@ -10,6 +10,7 @@ from app.auth import get_current_user
 router = APIRouter()
 
 
+@router.post("", response_model=FundingApplicationOut, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=FundingApplicationOut, status_code=status.HTTP_201_CREATED)
 def submit_application(
     application_in: FundingApplicationCreate,
@@ -74,6 +75,7 @@ def submit_application(
     return app_obj
 
 
+@router.get("", response_model=List[FundingApplicationSummary])
 @router.get("/", response_model=List[FundingApplicationSummary])
 def list_my_applications(
     db: Session = Depends(get_db),

@@ -2,10 +2,13 @@ import React from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { Search, Bell, LogOut, User as UserIcon, Menu } from 'lucide-react'
+import { alerts } from '../../services/mockData'
 
 function Header({ title, subtitle, onSearchChange, searchValue, setMobileOpen }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+
+  const unreadCount = alerts.filter(a => !a.read).length
 
   const handleLogout = () => {
     logout()
@@ -77,6 +80,7 @@ function Header({ title, subtitle, onSearchChange, searchValue, setMobileOpen })
 
         {/* Notification Icon */}
         <button 
+          onClick={() => navigate('/alerts')}
           style={{
             position: 'relative',
             width: '38px',
@@ -88,20 +92,33 @@ function Header({ title, subtitle, onSearchChange, searchValue, setMobileOpen })
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
           }}
           title="Notifications"
         >
           <Bell size={18} />
-          <span style={{
-            position: 'absolute',
-            top: '6px',
-            right: '6px',
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: 'var(--accent-cyan)'
-          }} />
+          {unreadCount > 0 && (
+            <span style={{
+              position: 'absolute',
+              top: '-5px',
+              right: '-5px',
+              minWidth: '18px',
+              height: '18px',
+              padding: '0 4px',
+              borderRadius: '9999px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              backgroundColor: '#ef4444',
+              color: '#ffffff',
+              boxShadow: '0 0 8px rgba(239, 68, 68, 0.5)'
+            }}>
+              {unreadCount}
+            </span>
+          )}
         </button>
 
         {/* User Profile Info & Avatar */}
