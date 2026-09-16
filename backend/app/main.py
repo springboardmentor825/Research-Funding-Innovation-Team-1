@@ -14,8 +14,8 @@ load_dotenv()
 def _seed_fixed_admin():
     """Ensures the fixed admin account (email + password) always exists so the
     Administrator Control Center can always be signed into with known credentials."""
-    admin_email = os.getenv("ADMIN_EMAIL", "admin@infera.app")
-    admin_password = os.getenv("ADMIN_PASSWORD", "Admin@12345")
+    admin_email = os.getenv("ADMIN_EMAIL", "m.jodhitap09@gmail.com")
+    admin_password = os.getenv("ADMIN_PASSWORD", "abc123")
     db = next(get_db())
     try:
         existing = db.query(User).filter(User.email == admin_email).first()
