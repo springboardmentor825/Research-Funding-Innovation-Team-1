@@ -97,10 +97,10 @@ def google_login(google_in: GoogleAuthRequest, db: Session = Depends(get_db)):
     if not user:
         # Auto-create the account. Honour the role the user picked on the sign-in
         # screen (safe default researcher). Only an explicit new-user signup step
-        # can set researcher/funder; "admin" is reserved for the seeded fixed
-        # admin account and is NEVER assignable via a Google credential.
+        # can set researcher/startup_founder; "administrator" is reserved for the
+        # seeded fixed admin account and is NEVER assignable via a Google credential.
         requested_role = (google_in.role or "researcher").strip().lower()
-        if requested_role not in {"researcher", "funder"}:
+        if requested_role not in {"researcher", "startup_founder"}:
             role = "researcher"
         else:
             role = requested_role

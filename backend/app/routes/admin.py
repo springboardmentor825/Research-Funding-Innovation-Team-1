@@ -15,7 +15,7 @@ def platform_overview(
     current_user: User = Depends(get_current_user)
 ):
     """Role-gated summary of the platform for administrators (read-only)."""
-    if current_user.role != "admin":
+    if current_user.role != "administrator":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Administrator access required."

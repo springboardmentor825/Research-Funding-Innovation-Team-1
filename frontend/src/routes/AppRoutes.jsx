@@ -36,8 +36,8 @@ const ProtectedRoute = ({ children }) => {
 
 const DashboardHome = () => {
   const { user } = useAuth()
-  if (user?.role === 'admin') return <AdminDashboard />
-  if (user?.role === 'funder') return <FunderDashboard />
+  if (user?.role === 'administrator') return <AdminDashboard />
+  if (user?.role === 'startup_founder') return <FunderDashboard />
   return <Dashboard />
 }
 

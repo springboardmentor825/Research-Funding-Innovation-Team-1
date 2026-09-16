@@ -64,7 +64,7 @@ function FunderDashboard() {
   return (
     <AppLayout
       title="Investment & Grant Pipeline"
-      subtitle={`Deal flow view for ${user?.full_name || 'Funder'}`}
+      subtitle={`Deal flow view for ${user?.full_name || 'Startup Founder'}`}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', maxWidth: '1280px', width: '100%', margin: '0 auto' }}>
 
@@ -93,7 +93,7 @@ function FunderDashboard() {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="badge" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}>ROLE: FUNDER</span>
+            <span className="badge" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}>ROLE: STARTUP FOUNDER</span>
             <Link to="/funding" className="btn-primary" style={{ padding: '0.5rem 1.15rem', fontSize: '0.85rem' }}>
               Explore Funding
             </Link>

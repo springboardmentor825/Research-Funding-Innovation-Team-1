@@ -24,11 +24,27 @@ def _seed_fixed_admin():
                 full_name="Platform Administrator",
                 email=admin_email,
                 password=get_password_hash(admin_password),
-                role="admin",
+                role="administrator",
                 login_type="email",
                 auth_provider="system",
             ))
             db.commit()
+    finally:
+        db.close()
+
+def _migrate_legacy_roles():
+    """One-time (idempotent) data migration: rename legacy role values to the
+    canonical names used by the frontend interfaces.
+    funder -> startup_founder, admin -> administrator."""
+    db = next(get_db())
+    try:
+        db.query(User).filter(User.role == "funder").update(
+            {User.role: "startup_founder"}, synchronize_session=False
+        )
+        db.query(User).filter(User.role == "admin").update(
+            {User.role: "administrator"}, synchronize_session=False
+        )
+        db.commit()
     finally:
         db.close()
 
@@ -37,6 +53,9 @@ Base.metadata.create_all(bind=engine)
 
 # Seed a stable admin account (idempotent) so admin sign-in never breaks
 _seed_fixed_admin()
+
+# Rename any pre-existing legacy role values to the current canonical names
+_migrate_legacy_roles()
 
 app = FastAPI(
     title="Infera API",

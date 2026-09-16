@@ -144,7 +144,7 @@ function Header({ title, subtitle, onSearchChange, searchValue, setMobileOpen })
               {user?.full_name || 'Researcher'}
             </div>
             <div style={{ fontSize: '0.725rem', color: 'var(--accent-cyan-light)', textTransform: 'capitalize' }}>
-              {user?.role || 'Researcher'}
+              {({ researcher: 'Researcher', startup_founder: 'Startup Founder', administrator: 'Administrator' })[user?.role] || 'Researcher'}
             </div>
           </div>
 

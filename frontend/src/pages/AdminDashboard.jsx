@@ -9,14 +9,20 @@ import analyticsService from '../services/analytics'
 const fmt = (n) => (n === null || n === undefined || isNaN(n) ? '—' : Number(n).toLocaleString())
 
 const roleColors = {
-  admin: { bg: 'rgba(239, 68, 68, 0.15)', fg: '#f87171' },
-  funder: { bg: 'rgba(245, 158, 11, 0.15)', fg: '#fbbf24' },
+  administrator: { bg: 'rgba(239, 68, 68, 0.15)', fg: '#f87171' },
+  startup_founder: { bg: 'rgba(245, 158, 11, 0.15)', fg: '#fbbf24' },
   researcher: { bg: 'rgba(139, 92, 246, 0.18)', fg: '#c4b5fd' }
 }
 
 const statusColors = {
   submitted: { bg: 'rgba(6, 182, 212, 0.15)', fg: '#67e8f9' },
   withdrawn: { bg: 'rgba(148, 163, 184, 0.15)', fg: '#94a3b8' }
+}
+
+const roleLabels = {
+  researcher: 'Researcher',
+  startup_founder: 'Startup Founder',
+  administrator: 'Administrator'
 }
 
 function AdminStat({ icon: Icon, label, value, tint }) {
@@ -123,8 +129,8 @@ function AdminDashboard() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
                 <AdminStat icon={Users} label="Registered Users" value={fmt(uc.total) ?? '…'} tint="#8b5cf6" />
                 <AdminStat icon={UserPlus} label="Researchers" value={fmt(uc.researcher) ?? '…'} tint="#8b5cf6" />
-                <AdminStat icon={CircleDollarSign} label="Funders" value={fmt(uc.funder) ?? '…'} tint="#f59e0b" />
-                <AdminStat icon={ShieldCheck} label="Admins" value={fmt(uc.admin) ?? '…'} tint="#ef4444" />
+                <AdminStat icon={CircleDollarSign} label="Startup Founders" value={fmt(uc.startup_founder) ?? '…'} tint="#f59e0b" />
+                <AdminStat icon={ShieldCheck} label="Admins" value={fmt(uc.administrator) ?? '…'} tint="#ef4444" />
                 <AdminStat icon={FileText} label="Grant Applications" value={fmt(ac.total) ?? '…'} tint="#06b6d4" />
                 <AdminStat icon={Briefcase} label="Open Funding" value={fmt(data.open_funding) ?? '…'} tint="#10b981" />
                 <AdminStat icon={MapPin} label="Corpus (publications)" value={fmt(corpus?.total_publications) ?? '…'} tint="#3b82f6" />
@@ -162,7 +168,7 @@ function AdminDashboard() {
                                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{u.email}</div>
                               </td>
                               <td style={{ padding: '0.55rem 0.6rem' }}>
-                                <span className="badge" style={{ background: rc.bg, color: rc.fg, textTransform: 'capitalize' }}>{u.role}</span>
+                                <span className="badge" style={{ background: rc.bg, color: rc.fg, textTransform: 'capitalize' }}>{roleLabels[u.role] || u.role}</span>
                               </td>
                               <td style={{ padding: '0.55rem 0.6rem', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{u.login_type}</td>
                               <td style={{ padding: '0.55rem 0.6rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>

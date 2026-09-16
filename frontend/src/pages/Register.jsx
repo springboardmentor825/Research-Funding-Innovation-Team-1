@@ -148,8 +148,8 @@ function Register() {
             <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Account Role</label>
             <select className="select-field" value={role} onChange={e => setRole(e.target.value)}>
               <option value="researcher">Researcher / Innovator</option>
-              <option value="funder">Investor / Funder</option>
-              <option value="admin">Administrator</option>
+              <option value="startup_founder">Startup Founder</option>
+              <option value="administrator">Administrator</option>
             </select>
           </div>
 
