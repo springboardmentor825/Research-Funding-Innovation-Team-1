@@ -47,6 +47,10 @@ function Login() {
   useEffect(() => {
     if (!googleClientId || !googleReady || !googleRef.current) return
 
+    if (googleRef.current.firstElementChild) {
+      googleRef.current.innerHTML = ''
+    }
+
     window.google.accounts.id.initialize({
       client_id: googleClientId,
       callback: handleGoogleCredential
@@ -57,7 +61,7 @@ function Login() {
       text: 'continue_with',
       shape: 'rectangular',
       logo_alignment: 'left',
-      width: '100%'
+      width: 360
     })
   }, [googleClientId, googleReady])
 
