@@ -1,0 +1,55 @@
+=== Table: users ===
+  id                        int                       Null:NO    Key:PRI   Default:None
+  full_name                 varchar(255)              Null:NO    Key:      Default:None
+  email                     varchar(255)              Null:NO    Key:UNI   Default:None
+  password                  varchar(255)              Null:YES   Key:      Default:None
+  role                      varchar(50)               Null:NO    Key:MUL   Default:researcher
+  login_type                varchar(50)               Null:NO    Key:      Default:email
+  created_at                timestamp                 Null:YES   Key:      Default:CURRENT_TIMESTAMP
+  google_id                 varchar(255)              Null:YES   Key:UNI   Default:None
+  profile_picture           varchar(500)              Null:YES   Key:      Default:None
+  auth_provider             varchar(50)               Null:NO    Key:      Default:email
+Total Rows: 5
+
+=== Table: Research_Profile ===
+  profile_id                int                       Null:NO    Key:PRI   Default:None
+  user_id                   int                       Null:NO    Key:UNI   Default:None
+  organization              varchar(255)              Null:NO    Key:MUL   Default:None
+  designation               varchar(255)              Null:NO    Key:      Default:None
+  research_domain           varchar(255)              Null:NO    Key:MUL   Default:None
+  technology_area           varchar(255)              Null:NO    Key:MUL   Default:None
+  research_interests        text                      Null:YES   Key:      Default:None
+  keywords                  text                      Null:YES   Key:      Default:None
+  bio                       text                      Null:YES   Key:      Default:None
+Total Rows: 1
+
+=== Table: Publications ===
+  publication_id            int                       Null:NO    Key:PRI   Default:None
+  user_id                   int                       Null:NO    Key:MUL   Default:None
+  title                     varchar(500)              Null:NO    Key:      Default:None
+  authors                   text                      Null:NO    Key:      Default:None
+  journal                   varchar(255)              Null:NO    Key:      Default:None
+  publication_year          int                       Null:NO    Key:MUL   Default:None
+  doi                       varchar(100)              Null:YES   Key:MUL   Default:None
+Total Rows: 10
+
+=== Table: Patents ===
+  patent_id                 int                       Null:NO    Key:PRI   Default:None
+  user_id                   int                       Null:NO    Key:MUL   Default:None
+  title                     varchar(500)              Null:NO    Key:      Default:None
+  inventor                  varchar(255)              Null:NO    Key:      Default:None
+  assignee                  varchar(255)              Null:NO    Key:      Default:None
+  technology_domain         varchar(255)              Null:NO    Key:MUL   Default:None
+  filing_date               date                      Null:NO    Key:MUL   Default:None
+Total Rows: 10
+
+=== Table: funding_opportunities ===
+  id                        int                       Null:NO    Key:PRI   Default:None
+  title                     varchar(255)              Null:NO    Key:MUL   Default:None
+  funder                    varchar(255)              Null:NO    Key:MUL   Default:None
+  amount_range              varchar(100)              Null:NO    Key:      Default:None
+  deadline                  date                      Null:NO    Key:      Default:None
+  semantic_fit              int                       Null:YES   Key:      Default:None
+  match_badges              varchar(255)              Null:YES   Key:      Default:None
+Total Rows: 24
+

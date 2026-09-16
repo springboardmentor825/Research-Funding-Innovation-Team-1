@@ -1,0 +1,112 @@
+﻿[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 23 modules transformed.
+node.exe : [31mx[39m 
+Build failed in 606ms
+At line:1 char:1
++ & "C:\Users\MADHU KRI
+SHNA\sources/node.exe" 
+"C:\Users\MADHU 
+KRISHNA\s ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: ([31mx[39m B   
+ uild failed in 606    
+ms:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+[31merror during 
+build:
+[31m[vite]: Rollup 
+failed to resolve 
+import "lucide-react" 
+from "C:/Users/MADHU KR
+ISHNA/OneDrive/Document
+s/project/Research-Fund
+ing-Innovation-Team-1/f
+rontend/src/pages/Login
+.jsx".
+This is most likely 
+unintended because it 
+can break your 
+application at runtime.
+If you do want to 
+externalize this 
+module explicitly add 
+it to
+`build.rollupOptions.ex
+ternal`[31m
+    at viteWarn (file:/
+//C:/Users/MADHU%20KRIS
+HNA/OneDrive/Documents/
+project/Research-Fundin
+g-Innovation-Team-1/fro
+ntend/node_modules/vite
+/dist/node/chunks/dep-B
+K3b2jBa.js:65855:17)
+    at onwarn (file:///
+C:/Users/MADHU%20KRISHN
+A/OneDrive/Documents/pr
+oject/Research-Funding-
+Innovation-Team-1/front
+end/node_modules/@vitej
+s/plugin-react/dist/ind
+ex.js:90:7)
+    at onRollupWarning 
+(file:///C:/Users/MADHU
+%20KRISHNA/OneDrive/Doc
+uments/project/Research
+-Funding-Innovation-Tea
+m-1/frontend/node_modul
+es/vite/dist/node/chunk
+s/dep-BK3b2jBa.js:65885
+:5)
+    at onwarn (file:///
+C:/Users/MADHU%20KRISHN
+A/OneDrive/Documents/pr
+oject/Research-Funding-
+Innovation-Team-1/front
+end/node_modules/vite/d
+ist/node/chunks/dep-BK3
+b2jBa.js:65550:7)
+    at file:///C:/Users
+/MADHU%20KRISHNA/OneDri
+ve/Documents/project/Re
+search-Funding-Innovati
+on-Team-1/frontend/node
+_modules/rollup/dist/es
+/shared/node-entry.js:2
+1216:13
+    at Object.logger 
+[as onLog] (file:///C:/
+Users/MADHU%20KRISHNA/O
+neDrive/Documents/proje
+ct/Research-Funding-Inn
+ovation-Team-1/frontend
+/node_modules/rollup/di
+st/es/shared/node-entry
+.js:23187:9)
+    at ModuleLoader.han
+dleInvalidResolvedId (f
+ile:///C:/Users/MADHU%2
+0KRISHNA/OneDrive/Docum
+ents/project/Research-F
+unding-Innovation-Team-
+1/frontend/node_modules
+/rollup/dist/es/shared/
+node-entry.js:21932:26)
+    at file:///C:/Users
+/MADHU%20KRISHNA/OneDri
+ve/Documents/project/Re
+search-Funding-Innovati
+on-Team-1/frontend/node
+_modules/rollup/dist/es
+/shared/node-entry.js:2
+1890:26[39m

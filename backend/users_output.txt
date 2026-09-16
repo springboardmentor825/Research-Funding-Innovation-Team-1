@@ -1,0 +1,12 @@
+Total Users: 5
+User 15: Madhu (madhukrishnakode@gmail.com) Role: researcher
+User 16: Madhu Krishna (madhu@example.com) Role: researcher
+User 17: Audit Test User (audit_608e59@example.com) Role: Researcher
+User 18: madhu (madhu@gmail.com) Role: researcher
+User 19: Madhu (madhukrishnakode1@gmail.com) Role: researcher
+
+Total Profiles: 1
+User 19: Domain='AI' | Tech='ML' | Interests='DL' | Keywords='AI'
+
+Publications per user: [{'user_id': 16, 'count': 10}]
+Patents per user: [{'user_id': 16, 'count': 10}]
