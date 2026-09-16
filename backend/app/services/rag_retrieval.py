@@ -131,80 +131,147 @@ _PUB_CORPUS_LIMIT = 10000
 
 
 def _ensure_built(db: Session) -> RetrievalCorpus:
-    """Build indexes if stale, under lock."""
+    """Ensure indexes are built and reasonably fresh.
+
+    - A fresh corpus is returned immediately.
+    - A stale-but-populated corpus is returned immediately AND rebuilt in a
+      background thread, so a 30-minute expiry never blocks a request.
+    - Only the very first build runs synchronously (prewarm normally handles it
+      at startup); subsequent rebuilds are non-blocking.
+    """
     global _corpus
-    if _corpus._built_at and (time.time() - _corpus._built_at) < _corpus._ttl:
+    now = time.time()
+    if _corpus._built_at and (now - _corpus._built_at) < _corpus._ttl:
         return _corpus
     with _corpus._lock:
-        if _corpus._built_at and (time.time() - _corpus._built_at) < _corpus._ttl:
+        if _corpus._built_at and (now - _corpus._built_at) < _corpus._ttl:
             return _corpus
 
-        # Funding
-        open_opps = db.query(FundingOpportunity).filter(FundingOpportunity.status == "open").all()
-        _corpus._fund_docs = []
-        _corpus._fund_meta = {}
-        for opp in open_opps:
-            text = " ".join(filter(None, [
-                opp.title, opp.funder, opp.description, opp.research_domains,
-                opp.technology_areas, opp.keywords, opp.match_badges, opp.eligibility,
-            ]))
-            _corpus._fund_docs.append((opp.id, text))
-            _corpus._fund_meta[opp.id] = {
-                "title": opp.title, "funder": opp.funder, "amount_range": opp.amount_range,
-                "deadline": str(opp.deadline) if opp.deadline else None,
-                "description": opp.description, "research_domains": opp.research_domains,
-                "technology_areas": opp.technology_areas, "semantic_fit": opp.semantic_fit,
-            }
-        _corpus._fund_index = BM25Index(_corpus._fund_docs)
-
-        # Global research corpus — most-cited subset, plain column tuples
-        # (avoids pinning 50K ORM objects in the session identity map)
-        cols = [
-            ResearchPublication.research_id,
-            ResearchPublication.title,
-            ResearchPublication.primary_topic,
-            ResearchPublication.topics_raw,
-            ResearchPublication.concepts_raw,
-            ResearchPublication.authors_raw,
-            ResearchPublication.source,
-            ResearchPublication.publication_year,
-            ResearchPublication.cited_by_count,
-            ResearchPublication.doi,
-        ]
-        rows = db.query(*cols).order_by(ResearchPublication.cited_by_count.desc()).limit(_PUB_CORPUS_LIMIT).all()
-        _corpus._pub_docs = []
-        _corpus._pub_meta = {}
-        for rid, title, p_topic, topics_raw, concepts_raw, authors_raw, source, year, cited, doi in rows:
-            text = " ".join(filter(None, [
-                title, p_topic, topics_raw, concepts_raw, authors_raw, source or "",
-            ]))
-            _corpus._pub_docs.append((rid, text))
-            _corpus._pub_meta[rid] = {
-                "title": title, "year": year, "source": source,
-                "authors": authors_raw, "cited_by_count": cited,
-                "doi": doi, "primary_topic": p_topic,
-            }
-        _corpus._pub_index = BM25Index(_corpus._pub_docs)
-
-        # Patents (user-registered & global demo assets)
-        pats = db.query(Patent).all()
-        _corpus._pat_docs = []
-        _corpus._pat_meta = {}
-        for pt in pats:
-            text = " ".join(filter(None, [
-                pt.title, pt.technology_domain, pt.inventor, pt.assignee,
-                pt.filing_date.strftime("%Y") if pt.filing_date else None,
-            ]))
-            _corpus._pat_docs.append((pt.patent_id, text))
-            _corpus._pat_meta[pt.patent_id] = {
-                "title": pt.title, "technology_domain": pt.technology_domain,
-                "inventor": pt.inventor, "assignee": pt.assignee,
-                "filing_date": str(pt.filing_date) if pt.filing_date else None,
-            }
-        _corpus._pat_index = BM25Index(_corpus._pat_docs)
-
-        _corpus._built_at = time.time()
+        has_data = (
+            (_corpus._fund_index and _corpus._fund_index.doc_count > 0)
+            or (_corpus._pub_index and _corpus._pub_index.doc_count > 0)
+        )
+        if _corpus._built_at and has_data:
+            # Stale but usable: serve now, refresh in the background.
+            _trigger_background_rebuild(_warm)
+            return _corpus
+        # First build (or an empty corpus): do it inline, it is required for results.
+        _build_all(db)
         return _corpus
+
+
+def _build_all(db: Session) -> None:
+    """(Re)build all three indexes from the database. Must hold _corpus._lock."""
+    global _corpus
+    # Funding
+    open_opps = db.query(FundingOpportunity).filter(FundingOpportunity.status == "open").all()
+    _corpus._fund_docs = []
+    _corpus._fund_meta = {}
+    for opp in open_opps:
+        text = " ".join(filter(None, [
+            opp.title, opp.funder, opp.description, opp.research_domains,
+            opp.technology_areas, opp.keywords, opp.match_badges, opp.eligibility,
+        ]))
+        _corpus._fund_docs.append((opp.id, text))
+        _corpus._fund_meta[opp.id] = {
+            "title": opp.title, "funder": opp.funder, "amount_range": opp.amount_range,
+            "deadline": str(opp.deadline) if opp.deadline else None,
+            "description": opp.description, "research_domains": opp.research_domains,
+            "technology_areas": opp.technology_areas, "semantic_fit": opp.semantic_fit,
+        }
+    _corpus._fund_index = BM25Index(_corpus._fund_docs)
+
+    # Global research corpus — most-cited subset, plain column tuples
+    # (avoids pinning 50K ORM objects in the session identity map)
+    cols = [
+        ResearchPublication.research_id,
+        ResearchPublication.title,
+        ResearchPublication.primary_topic,
+        ResearchPublication.topics_raw,
+        ResearchPublication.concepts_raw,
+        ResearchPublication.authors_raw,
+        ResearchPublication.source,
+        ResearchPublication.publication_year,
+        ResearchPublication.cited_by_count,
+        ResearchPublication.doi,
+    ]
+    rows = db.query(*cols).order_by(ResearchPublication.cited_by_count.desc()).limit(_PUB_CORPUS_LIMIT).all()
+    _corpus._pub_docs = []
+    _corpus._pub_meta = {}
+    for rid, title, p_topic, topics_raw, concepts_raw, authors_raw, source, year, cited, doi in rows:
+        text = " ".join(filter(None, [
+            title, p_topic, topics_raw, concepts_raw, authors_raw, source or "",
+        ]))
+        _corpus._pub_docs.append((rid, text))
+        _corpus._pub_meta[rid] = {
+            "title": title, "year": year, "source": source,
+            "authors": authors_raw, "cited_by_count": cited,
+            "doi": doi, "primary_topic": p_topic,
+        }
+    _corpus._pub_index = BM25Index(_corpus._pub_docs)
+
+    # Patents (user-registered & global demo assets)
+    pats = db.query(Patent).all()
+    _corpus._pat_docs = []
+    _corpus._pat_meta = {}
+    for pt in pats:
+        text = " ".join(filter(None, [
+            pt.title, pt.technology_domain, pt.inventor, pt.assignee,
+            pt.filing_date.strftime("%Y") if pt.filing_date else None,
+        ]))
+        _corpus._pat_docs.append((pt.patent_id, text))
+        _corpus._pat_meta[pt.patent_id] = {
+            "title": pt.title, "technology_domain": pt.technology_domain,
+            "inventor": pt.inventor, "assignee": pt.assignee,
+            "filing_date": str(pt.filing_date) if pt.filing_date else None,
+        }
+    _corpus._pat_index = BM25Index(_corpus._pat_docs)
+
+    _corpus._built_at = time.time()
+
+
+# Guards against stacking multiple rebuild threads at once.
+_rebuild_lock = threading.Lock()
+_rebuild_running = False
+
+
+def _warm() -> None:
+    """Run one full rebuild with its own DB session (used at startup and on expiry)."""
+    from app.database import SessionLocal
+    try:
+        db = SessionLocal()
+        try:
+            with _corpus._lock:
+                _build_all(db)
+            print("RAG retrieval corpus warmed.")
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"RAG corpus prewarm failed: {e}")
+
+
+def _trigger_background_rebuild(worker) -> None:
+    """Start worker in a daemon thread unless one is already running."""
+    global _rebuild_running
+    with _rebuild_lock:
+        if _rebuild_running:
+            return
+        _rebuild_running = True
+    threading.Thread(target=_run_worker, args=(worker,), daemon=True).start()
+
+
+def _run_worker(worker) -> None:
+    global _rebuild_running
+    try:
+        worker()
+    finally:
+        with _rebuild_lock:
+            _rebuild_running = False
+
+
+def prewarm() -> None:
+    """Build the retrieval indexes once at startup (background) to avoid first-chat latency."""
+    _trigger_background_rebuild(_warm)
 
 
 def retrieve_funding(query: str, db: Session, top_k: int = 5) -> List[Dict]:
@@ -244,21 +311,3 @@ def retrieve_patents(query: str, db: Session, top_k: int = 5) -> List[Dict]:
         meta = corpus._pat_meta[doc_id]
         results.append({"type": "patent", "id": doc_id, "score": round(score, 2), **meta})
     return results
-
-
-def prewarm() -> None:
-    """Build the retrieval indexes once at startup (background) to avoid first-chat latency."""
-    from app.database import SessionLocal
-
-    def _warm() -> None:
-        try:
-            db = SessionLocal()
-            try:
-                _ensure_built(db)
-            finally:
-                db.close()
-            print("RAG retrieval corpus warmed.")
-        except Exception as e:
-            print(f"RAG corpus prewarm failed: {e}")
-
-    threading.Thread(target=_warm, daemon=True).start()
