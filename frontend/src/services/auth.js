@@ -23,8 +23,8 @@ const authService = {
     return response.data
   },
 
-  googleLogin: async (credential) => {
-    const response = await api.post('/auth/google', { credential })
+  googleLogin: async (credential, role = 'researcher') => {
+    const response = await api.post('/auth/google', { credential, role })
     return response.data
   },
 

@@ -95,12 +95,21 @@ def google_login(google_in: GoogleAuthRequest, db: Session = Depends(get_db)):
 
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        # Auto-create account; a random password keeps the NOT NULL column safe
+        # Auto-create the account. Honour the role the user picked on the sign-in
+        # screen (safe default researcher). Only an explicit new-user signup step
+        # can set researcher/funder; "admin" is reserved for the seeded fixed
+        # admin account and is NEVER assignable via a Google credential.
+        requested_role = (google_in.role or "researcher").strip().lower()
+        if requested_role not in {"researcher", "funder"}:
+            role = "researcher"
+        else:
+            role = requested_role
+
         user = User(
             full_name=full_name,
             email=email,
             password=get_password_hash(secrets.token_hex(24)),
-            role="researcher",
+            role=role,
             login_type="google",
             google_id=google_id,
             profile_picture=picture,

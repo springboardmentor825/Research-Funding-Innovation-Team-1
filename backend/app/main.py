@@ -5,11 +5,38 @@ from app.routes import auth, users, publications, patents, analytics, funding, r
 from app.services import rag_retrieval
 import os
 from dotenv import load_dotenv
+from app.database import get_db
+from app.models import User
+from app.auth import get_password_hash
 
 load_dotenv()
 
+def _seed_fixed_admin():
+    """Ensures the fixed admin account (email + password) always exists so the
+    Administrator Control Center can always be signed into with known credentials."""
+    admin_email = os.getenv("ADMIN_EMAIL", "admin@infera.app")
+    admin_password = os.getenv("ADMIN_PASSWORD", "Admin@12345")
+    db = next(get_db())
+    try:
+        existing = db.query(User).filter(User.email == admin_email).first()
+        if not existing:
+            db.add(User(
+                full_name="Platform Administrator",
+                email=admin_email,
+                password=get_password_hash(admin_password),
+                role="admin",
+                login_type="email",
+                auth_provider="system",
+            ))
+            db.commit()
+    finally:
+        db.close()
+
 # Build database tables if they do not exist
 Base.metadata.create_all(bind=engine)
+
+# Seed a stable admin account (idempotent) so admin sign-in never breaks
+_seed_fixed_admin()
 
 app = FastAPI(
     title="Infera API",

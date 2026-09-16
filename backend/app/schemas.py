@@ -132,6 +132,7 @@ class ForgotPasswordRequest(BaseModel):
 
 class GoogleAuthRequest(BaseModel):
     credential: str
+    role: str = "researcher"
 
 # ==========================================
 # FUNDING SCHEMAS

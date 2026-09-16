@@ -31,8 +31,8 @@ export const AuthProvider = ({ children }) => {
     return profile
   }
 
-  const googleLogin = async (credential) => {
-    const data = await authService.googleLogin(credential)
+  const googleLogin = async (credential, role) => {
+    const data = await authService.googleLogin(credential, role)
     localStorage.setItem('token', data.access_token)
     const profile = await authService.getProfile()
     setUser(profile)

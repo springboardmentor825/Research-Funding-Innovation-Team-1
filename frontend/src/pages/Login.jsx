@@ -13,8 +13,14 @@ function Login() {
   const [loading, setLoading] = useState(false)
   const [googleClientId, setGoogleClientId] = useState('')
   const [googleReady, setGoogleReady] = useState(false)
+  const [pendingGoogleCredential, setPendingGoogleCredential] = useState(null)
   const { login, googleLogin } = useAuth()
   const navigate = useNavigate()
+  const clickEmailFirst = () => {
+    setError('')
+    setPendingGoogleCredential(null)
+    setEmailFirst(true)
+  }
   const googleRef = useRef(null)
 
   useEffect(() => {
