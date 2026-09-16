@@ -10,6 +10,12 @@ import Innovation from '../pages/Innovation'
 import Profile from '../pages/Profile'
 import Publications from '../pages/Publications'
 import Patents from '../pages/Patents'
+import InnovationScore from '../pages/InnovationScore'
+import Reports from '../pages/Reports'
+import Collaborations from '../pages/Collaborations'
+import LabResources from '../pages/LabResources'
+import Alerts from '../pages/Alerts'
+import Settings from '../pages/Settings'
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -71,6 +77,42 @@ const AppRoutes = () => {
       <Route path="/innovation" element={
         <ProtectedRoute>
           <Innovation />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/innovation-score" element={
+        <ProtectedRoute>
+          <InnovationScore />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/reports" element={
+        <ProtectedRoute>
+          <Reports />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/collaborations" element={
+        <ProtectedRoute>
+          <Collaborations />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/lab-resources" element={
+        <ProtectedRoute>
+          <LabResources />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/alerts" element={
+        <ProtectedRoute>
+          <Alerts />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <Settings />
         </ProtectedRoute>
       } />
 

@@ -8,6 +8,12 @@ import {
   BookOpen,
   Award,
   Lightbulb,
+  Gauge,
+  FileBarChart2,
+  Handshake,
+  FlaskConical,
+  Bell,
+  Settings as SettingsIcon,
   X
 } from 'lucide-react'
 
@@ -43,6 +49,15 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
     { label: 'Publications', path: '/publications', icon: BookOpen },
     { label: 'Patents', path: '/patents', icon: Award },
     { label: 'Innovation Hub', path: '/innovation', icon: Lightbulb },
+  ]
+
+  const moduleItems = [
+    { label: 'Innovation Score', path: '/innovation-score', icon: Gauge },
+    { label: 'Reports', path: '/reports', icon: FileBarChart2 },
+    { label: 'Collaborations', path: '/collaborations', icon: Handshake },
+    { label: 'Lab Resources', path: '/lab-resources', icon: FlaskConical },
+    { label: 'Alerts', path: '/alerts', icon: Bell },
+    { label: 'Settings', path: '/settings', icon: SettingsIcon },
   ]
 
   const statusColor = aiOnline === null ? 'var(--text-muted)' : aiOnline ? 'var(--accent-emerald)' : '#EF4444'
@@ -114,6 +129,28 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
                     {item.badge}
                   </span>
                 )}
+              </Link>
+            )
+          })}
+
+          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '1rem 0.75rem 0.5rem 0.75rem', marginTop: '0.5rem' }}>Workspace Modules</div>
+          {moduleItems.map((item) => {
+            const Icon = item.icon
+            const active = isActive(item.path)
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileOpen && setMobileOpen(false)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.75rem 1rem', borderRadius: '10px', textDecoration: 'none',
+                  fontSize: '0.9rem', fontWeight: active ? 600 : 500, color: active ? '#F8FAFC' : 'var(--text-secondary)',
+                  background: active ? 'linear-gradient(90deg, rgba(139,92,246,0.16) 0%, rgba(139,92,246,0.04) 100%)' : 'transparent',
+                  borderLeft: active ? '3px solid var(--accent-violet)' : '3px solid transparent', transition: 'all 0.2s ease', position: 'relative'
+                }}
+              >
+                <Icon size={18} color={active ? 'var(--accent-violet)' : '#94A3B8'} />
+                <span style={{ flexGrow: 1 }}>{item.label}</span>
               </Link>
             )
           })}
